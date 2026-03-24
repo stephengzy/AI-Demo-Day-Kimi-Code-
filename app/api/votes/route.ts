@@ -13,7 +13,7 @@ async function getCurrentUser() {
     .from('users')
     .select('id, name, department, role')
     .eq('id', parseInt(userId))
-    .single();
+    .single() as { data: any; error: any };
   
   return user;
 }
@@ -29,7 +29,7 @@ export async function GET() {
   const { data: votes, error } = await supabase
     .from('votes')
     .select('*')
-    .eq('voter_id', user.id);
+    .eq('voter_id', user.id) as { data: any[]; error: any };
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     .from('demos')
     .select('id, track, submitted_by')
     .eq('id', demo_id)
-    .single();
+    .single() as { data: any; error: any };
 
   if (demoError || !demo) {
     return NextResponse.json({ error: 'Demo 不存在' }, { status: 404 });
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
     .from('votes')
     .select('id')
     .eq('voter_id', user.id)
-    .eq('vote_type', vote_type);
+    .eq('vote_type', vote_type) as { data: any[]; error: any };
 
   if (existingVotes && existingVotes.length >= voteConfig.maxVotes) {
     return NextResponse.json({ error: `该奖项最多投 ${voteConfig.maxVotes} 票` }, { status: 400 });
@@ -89,13 +89,14 @@ export async function POST(request: Request) {
   }
 
   // 插入投票
+  const voteData: any = {
+    voter_id: user.id,
+    demo_id,
+    vote_type,
+  };
   const { error: insertError } = await supabase
     .from('votes')
-    .insert({
-      voter_id: user.id,
-      demo_id,
-      vote_type,
-    });
+    .insert(voteData);
 
   if (insertError) {
     if (insertError.code === '23505') { // unique violation

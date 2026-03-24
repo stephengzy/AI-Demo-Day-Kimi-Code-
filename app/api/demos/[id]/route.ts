@@ -15,7 +15,7 @@ export async function GET(
       submitter:submitted_by(name, department)
     `)
     .eq('id', parseInt(id))
-    .single();
+    .single() as { data: any; error: any };
 
   if (error || !demo) {
     return NextResponse.json({ error: 'Demo 不存在' }, { status: 404 });

@@ -65,7 +65,7 @@ export async function POST() {
       .from('users')
       .select('id, name, department')
       .eq('department', '社区战略组')
-      .eq('role', 'normal');
+      .eq('role', 'normal') as { data: any[]; error: any };
 
     if (userError || !communityUsers || communityUsers.length === 0) {
       return NextResponse.json({ error: '没有找到社区战略组的普通成员，请先创建用户' }, { status: 400 });
@@ -77,7 +77,7 @@ export async function POST() {
       // 随机选择一个提交者
       const submitter = communityUsers[Math.floor(Math.random() * communityUsers.length)];
       
-      const { error } = await supabase.from('demos').insert({
+      const demoData: any = {
         name: demo.name,
         summary: demo.summary,
         track: 'optimizer',
@@ -87,7 +87,8 @@ export async function POST() {
         background: `这是 ${demo.name} 的背景描述。我们发现团队中很多人在工作中遇到了效率问题，因此开发了这个工具来解决痛点。`,
         media_urls: [],
         submitted_by: submitter.id,
-      });
+      };
+      const { error } = await supabase.from('demos').insert(demoData);
 
       if (error) {
         results.errors.push(`Optimizer ${demo.name}: ${error.message}`);
@@ -111,7 +112,7 @@ export async function POST() {
         submitter2 = otherUsers[Math.floor(Math.random() * otherUsers.length)];
       }
       
-      const { error } = await supabase.from('demos').insert({
+      const demoData: any = {
         name: demo.name,
         summary: demo.summary,
         track: 'builder',
@@ -123,7 +124,8 @@ export async function POST() {
         background: `这是 ${demo.name} 的项目背景。基于对市场的深度调研，我们发现这个领域有很大的机会。`,
         media_urls: [],
         submitted_by: submitter1.id,
-      });
+      };
+      const { error } = await supabase.from('demos').insert(demoData);
 
       if (error) {
         results.errors.push(`Builder ${demo.name}: ${error.message}`);
@@ -140,12 +142,13 @@ export async function POST() {
       // 随机选择作者
       const author = communityUsers[Math.floor(Math.random() * communityUsers.length)];
       
-      const { error } = await supabase.from('messages').insert({
+      const messageData: any = {
         author_id: author.id,
         title: msg.title,
         content: msg.content,
         category: null,
-      });
+      };
+      const { error } = await supabase.from('messages').insert(messageData);
 
       if (error) {
         results.errors.push(`Message: ${error.message}`);

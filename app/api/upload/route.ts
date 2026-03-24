@@ -13,7 +13,7 @@ async function getCurrentUser() {
     .from('users')
     .select('id, name, department, role')
     .eq('id', parseInt(userId))
-    .single();
+    .single() as { data: any; error: any };
   
   return user;
 }

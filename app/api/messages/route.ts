@@ -12,7 +12,7 @@ async function getCurrentUser() {
     .from('users')
     .select('id, name, department, role')
     .eq('id', parseInt(userId))
-    .single();
+    .single() as { data: any; error: any };
   
   return user;
 }
@@ -26,7 +26,7 @@ export async function GET() {
       *,
       author:author_id(name, department)
     `)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }) as { data: any[]; error: any };
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -41,7 +41,7 @@ export async function GET() {
     const { data: upvotes, error: upvoteError } = await supabase
       .from('message_upvotes')
       .select('message_id')
-      .in('message_id', messageIds);
+      .in('message_id', messageIds) as { data: any[]; error: any };
 
     if (!upvoteError && upvotes) {
       for (const upvote of upvotes) {
@@ -80,16 +80,18 @@ export async function POST(request: Request) {
 
   const supabase = getSupabaseAdmin();
   
+  const messageData: any = {
+    author_id: user.id,
+    title: title || null,
+    content: content.trim(),
+    category: category || null,
+  };
+  
   const { data, error } = await supabase
     .from('messages')
-    .insert({
-      author_id: user.id,
-      title: title || null,
-      content: content.trim(),
-      category: category || null,
-    })
+    .insert(messageData)
     .select()
-    .single();
+    .single() as { data: any; error: any };
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -16,7 +16,7 @@ export async function GET() {
     .from('users')
     .select('id, name, department, role')
     .eq('id', parseInt(userId))
-    .single();
+    .single() as { data: any; error: any };
 
   if (error || !user) {
     return NextResponse.json({ user: null });

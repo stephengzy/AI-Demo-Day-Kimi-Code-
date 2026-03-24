@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   const { data: demos, error } = await supabase
     .from('demos')
     .select('*')
-    .eq('track', track);
+    .eq('track', track) as { data: any[]; error: any };
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
       voter:voter_id(id, role)
     `)
     .eq('vote_type', voteType)
-    .in('demo_id', demoIds);
+    .in('demo_id', demoIds) as { data: any[]; error: any };
 
   if (votesError) {
     return NextResponse.json({ error: votesError.message }, { status: 500 });

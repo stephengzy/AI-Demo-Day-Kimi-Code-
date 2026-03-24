@@ -12,7 +12,7 @@ async function getCurrentUser() {
     .from('users')
     .select('id, name, department, role')
     .eq('id', parseInt(userId))
-    .single();
+    .single() as { data: any; error: any };
   
   return user;
 }
@@ -54,12 +54,13 @@ export async function POST(
     return NextResponse.json({ upvoted: false });
   } else {
     // 添加点赞
+    const upvoteData: any = {
+      message_id: messageId,
+      user_id: user.id,
+    };
     const { error } = await supabase
       .from('message_upvotes')
-      .insert({
-        message_id: messageId,
-        user_id: user.id,
-      });
+      .insert(upvoteData);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });

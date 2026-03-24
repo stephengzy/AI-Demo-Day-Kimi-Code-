@@ -12,7 +12,7 @@ async function getCurrentUser() {
     .from('users')
     .select('id, name, department, role')
     .eq('id', parseInt(userId))
-    .single();
+    .single() as { data: any; error: any };
   
   return user;
 }
@@ -26,7 +26,7 @@ export async function GET() {
       *,
       submitter:submitted_by(name, department)
     `)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }) as { data: any[]; error: any };
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -61,23 +61,25 @@ export async function POST(request: Request) {
 
   const supabase = getSupabaseAdmin();
   
+  const insertData: any = {
+    name,
+    summary,
+    track,
+    demo_link: demo_link || null,
+    submitter1_name,
+    submitter1_dept,
+    submitter2_name: submitter2_name || null,
+    submitter2_dept: submitter2_dept || null,
+    background: background || null,
+    media_urls: media_urls || [],
+    submitted_by: user.id,
+  };
+  
   const { data, error } = await supabase
     .from('demos')
-    .insert({
-      name,
-      summary,
-      track,
-      demo_link: demo_link || null,
-      submitter1_name,
-      submitter1_dept,
-      submitter2_name: submitter2_name || null,
-      submitter2_dept: submitter2_dept || null,
-      background: background || null,
-      media_urls: media_urls || [],
-      submitted_by: user.id,
-    })
+    .insert(insertData)
     .select()
-    .single();
+    .single() as { data: any; error: any };
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
