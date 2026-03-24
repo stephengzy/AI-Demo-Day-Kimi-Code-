@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { CheckCircle, Zap, Hammer, X, Upload } from 'lucide-react';
 
 interface SubmitModalProps {
   onClose: () => void;

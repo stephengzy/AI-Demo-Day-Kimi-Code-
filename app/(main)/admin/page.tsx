@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { CheckCircle, AlertCircle, Check, Loader2, PlusCircle, Trash2, Trash, LayoutGrid, Trophy, MessageSquare } from 'lucide-react';
 
 export default function AdminPage() {
   const router = useRouter();
