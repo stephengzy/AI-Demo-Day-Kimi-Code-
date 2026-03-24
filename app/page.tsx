@@ -22,9 +22,7 @@ export default function EntryPortal() {
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const [apiError, setApiError] = useState('');
-
-  useEffect(() => {
+useEffect(() => {
     fetch('/api/auth/users')
       .then(r => r.json())
       .then(d => {
