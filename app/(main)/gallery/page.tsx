@@ -364,7 +364,7 @@ export default function GalleryPage() {
                           rel="noopener noreferrer"
                         >
                           <ExternalLink size={16} />
-                          <span>查看演示</span>
+                          <span>链接</span>
                         </a>
                       </section>
                     )}
