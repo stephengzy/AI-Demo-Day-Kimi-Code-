@@ -6,9 +6,9 @@ export const translations = {
     // 导航
     nav: {
       guide: '指南',
-      gallery: '作品',
-      leaderboard: '排行榜',
-      square: '广场',
+      gallery: 'Demo总览',
+      leaderboard: 'Demo投票',
+      square: '留言广场',
       submit: '提交 Demo',
       login: '登录',
       guest: '游客',
