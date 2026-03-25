@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import { Search, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 // 动态导入 Lightbox 组件，禁用服务端渲染
-const Lightbox = dynamic(() => import('@/components/Lightbox'), { ssr: false });
+const Lightbox = dynamicImport(() => import('@/components/Lightbox'), { ssr: false });
 
 // 禁用静态生成，强制动态渲染
 export const dynamic = 'force-dynamic';
