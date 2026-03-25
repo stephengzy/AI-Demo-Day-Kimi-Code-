@@ -60,6 +60,40 @@ export async function POST(request: Request) {
   }
 
   const supabase = getSupabaseAdmin();
+
+  // 验证提交人1：姓名和部门必须匹配数据库中的用户
+  const { data: submitter1, error: submitter1Error } = await supabase
+    .from('users')
+    .select('id, name, department')
+    .eq('name', submitter1_name)
+    .eq('department', submitter1_dept)
+    .single() as { data: any; error: any };
+
+  if (submitter1Error || !submitter1) {
+    return NextResponse.json({ error: '第一位提交人的姓名和部门不匹配，请从下拉列表中选择' }, { status: 400 });
+  }
+
+  // 如果是Builder且有第二位提交人，验证第二位
+  let submitter2Id = null;
+  if (track === 'builder' && submitter2_name) {
+    const { data: submitter2, error: submitter2Error } = await supabase
+      .from('users')
+      .select('id, name, department')
+      .eq('name', submitter2_name)
+      .eq('department', submitter2_dept)
+      .single() as { data: any; error: any };
+
+    if (submitter2Error || !submitter2) {
+      return NextResponse.json({ error: '第二位提交人的姓名和部门不匹配，请从下拉列表中选择' }, { status: 400 });
+    }
+
+    // 验证两位提交人不能是同一个人
+    if (submitter1.id === submitter2.id) {
+      return NextResponse.json({ error: '两位提交人不能是同一个人' }, { status: 400 });
+    }
+
+    submitter2Id = submitter2.id;
+  }
   
   const insertData: any = {
     name,
@@ -73,6 +107,9 @@ export async function POST(request: Request) {
     background: background || null,
     media_urls: media_urls || [],
     submitted_by: user.id,
+    // 存储验证后的提交人ID，便于后续查询
+    submitter1_id: submitter1.id,
+    submitter2_id: submitter2Id,
   };
   
   const { data, error } = await supabase

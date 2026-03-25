@@ -1,7 +1,14 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { CheckCircle, Zap, Hammer, X, Upload } from 'lucide-react';
+import { pinyin } from 'pinyin-pro';
+
+interface UserOption {
+  id: number;
+  name: string;
+  department: string;
+}
 
 interface SubmitModalProps {
   onClose: () => void;
@@ -26,12 +33,103 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
   const [success, setSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 用户选择相关状态 - 与登录页逻辑一致
+  const [users, setUsers] = useState<UserOption[]>([]);
+  const [query1, setQuery1] = useState('');
+  const [query2, setQuery2] = useState('');
+  const [selectedUser1, setSelectedUser1] = useState<UserOption | null>(null);
+  const [selectedUser2, setSelectedUser2] = useState<UserOption | null>(null);
+  const [showDropdown1, setShowDropdown1] = useState(false);
+  const [showDropdown2, setShowDropdown2] = useState(false);
+  const inputRef1 = useRef<HTMLInputElement>(null);
+  const inputRef2 = useRef<HTMLInputElement>(null);
+  const dropdownRef1 = useRef<HTMLDivElement>(null);
+  const dropdownRef2 = useRef<HTMLDivElement>(null);
+
   const isOptimizer = form.track === 'optimizer';
+
+  // 加载用户列表
+  useEffect(() => {
+    fetch('/api/auth/users')
+      .then(r => r.json())
+      .then(d => {
+        if (!d.error) {
+          setUsers(d.users || []);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // 点击外部关闭下拉框
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef1.current && !dropdownRef1.current.contains(e.target as Node) &&
+          inputRef1.current && !inputRef1.current.contains(e.target as Node)) {
+        setShowDropdown1(false);
+      }
+      if (dropdownRef2.current && !dropdownRef2.current.contains(e.target as Node) &&
+          inputRef2.current && !inputRef2.current.contains(e.target as Node)) {
+        setShowDropdown2(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // 筛选用户逻辑 - 与登录页一致
+  const filteredUsers1 = users.filter(u => {
+    if (!query1.trim()) return true;
+    const q = query1.trim().toLowerCase();
+    if (u.name.includes(q)) return true;
+    const fullPinyin = pinyin(u.name, { toneType: 'none', type: 'array' }).join('').toLowerCase();
+    const initials = pinyin(u.name, { pattern: 'first', toneType: 'none', type: 'array' }).join('').toLowerCase();
+    return fullPinyin.includes(q) || initials.includes(q);
+  });
+
+  const filteredUsers2 = users.filter(u => {
+    if (!query2.trim()) return true;
+    const q = query2.trim().toLowerCase();
+    if (u.name.includes(q)) return true;
+    const fullPinyin = pinyin(u.name, { toneType: 'none', type: 'array' }).join('').toLowerCase();
+    const initials = pinyin(u.name, { pattern: 'first', toneType: 'none', type: 'array' }).join('').toLowerCase();
+    return fullPinyin.includes(q) || initials.includes(q);
+  });
+
+  function selectUser1(user: UserOption) {
+    setSelectedUser1(user);
+    setQuery1(user.name);
+    setForm(prev => ({ 
+      ...prev, 
+      submitter1_name: user.name, 
+      submitter1_dept: user.department 
+    }));
+    setShowDropdown1(false);
+    setError('');
+  }
+
+  function selectUser2(user: UserOption) {
+    setSelectedUser2(user);
+    setQuery2(user.name);
+    setForm(prev => ({ 
+      ...prev, 
+      submitter2_name: user.name, 
+      submitter2_dept: user.department 
+    }));
+    setShowDropdown2(false);
+    setError('');
+  }
 
   function updateField(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }));
     if (field === 'track' && value === 'optimizer') {
-      setForm(prev => ({ ...prev, [field]: value, submitter2_name: '', submitter2_dept: '' }));
+      setForm(prev => ({ 
+        ...prev, 
+        [field]: value, 
+        submitter2_name: '', 
+        submitter2_dept: '' 
+      }));
+      setSelectedUser2(null);
+      setQuery2('');
     }
   }
 
@@ -64,6 +162,35 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
     if (!form.name || !form.summary || !form.track || !form.submitter1_name || !form.submitter1_dept || !form.background) {
       setError('请填写所有必填项');
       return;
+    }
+
+    // 验证提交人1必须已选择（从下拉框选择，不是手动输入）
+    if (!selectedUser1) {
+      setError('请从下拉列表中选择第一位提交人');
+      return;
+    }
+
+    // 验证提交人1的部门匹配
+    if (selectedUser1.department !== form.submitter1_dept) {
+      setError('第一位提交人的部门信息不匹配，请重新选择');
+      return;
+    }
+
+    // Builder赛道且填写了第二位提交人时，验证第二位
+    if (form.track === 'builder' && form.submitter2_name) {
+      if (!selectedUser2) {
+        setError('请从下拉列表中选择第二位提交人，或留空');
+        return;
+      }
+      if (selectedUser2.department !== form.submitter2_dept) {
+        setError('第二位提交人的部门信息不匹配，请重新选择');
+        return;
+      }
+      // 不能选择自己
+      if (selectedUser1.id === selectedUser2.id) {
+        setError('两位提交人不能是同一个人');
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -152,26 +279,59 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
+                {/* 提交人1 - 薯名下拉选择 */}
+                <div className="space-y-3 relative">
                   <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    Name / 姓名 *
+                    薯名 *
                   </label>
                   <input
+                    ref={inputRef1}
                     className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-0 py-3 text-base transition-colors placeholder:text-outline-variant/50"
-                    placeholder="e.g. 恒宇"
-                    value={form.submitter1_name}
-                    onChange={e => updateField('submitter1_name', e.target.value)}
+                    placeholder="输入薯名搜索..."
+                    value={query1}
+                    onChange={e => {
+                      setQuery1(e.target.value);
+                      setSelectedUser1(null);
+                      setForm(prev => ({ ...prev, submitter1_name: '', submitter1_dept: '' }));
+                      setShowDropdown1(true);
+                    }}
+                    onFocus={() => setShowDropdown1(true)}
                   />
+                  {showDropdown1 && filteredUsers1.length > 0 && (
+                    <div
+                      ref={dropdownRef1}
+                      className="absolute top-full left-0 right-0 mt-1 bg-white border border-surface-container-high shadow-xl max-h-48 overflow-y-auto z-50 rounded-lg"
+                    >
+                      {filteredUsers1.map(u => (
+                        <button
+                          key={u.id}
+                          type="button"
+                          className="w-full px-4 py-3 text-left hover:bg-surface-container-low transition-colors flex justify-between items-center"
+                          onClick={() => selectUser1(u)}
+                        >
+                          <span className="text-base font-medium text-on-surface">{u.name}</span>
+                          <span className="text-xs text-outline chinese-text">{u.department}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {showDropdown1 && query1 && filteredUsers1.length === 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-surface-container-high shadow-xl z-50 rounded-lg px-4 py-3 text-sm text-outline">
+                      未找到匹配用户
+                    </div>
+                  )}
                 </div>
+
+                {/* 提交人1 - 部门自动填充（只读） */}
                 <div className="space-y-3">
                   <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    Dept / 部门 *
+                    部门 *
                   </label>
                   <input
-                    className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-0 py-3 text-base transition-colors placeholder:text-outline-variant/50"
-                    placeholder="e.g. 战略部"
+                    className="w-full bg-surface-container-low/50 border-0 border-b-2 border-outline/30 px-0 py-3 text-base text-on-surface/70 cursor-not-allowed"
+                    placeholder="选择薯名后自动填充"
                     value={form.submitter1_dept}
-                    onChange={e => updateField('submitter1_dept', e.target.value)}
+                    readOnly
                   />
                 </div>
               </div>
@@ -179,21 +339,51 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
               {/* Member 2 for Builder */}
               <div className={`space-y-6 ${isOptimizer ? 'opacity-30 pointer-events-none' : ''}`}>
                 <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                  Partner / 伙伴 {isOptimizer ? '(Optimizer 无需填写)' : '(Builder 可选)'}
+                  伙伴 {isOptimizer ? '(Optimizer 无需填写)' : '(Builder 可选)'}
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* 提交人2 - 薯名下拉选择 */}
+                  <div className="relative">
+                    <input
+                      ref={inputRef2}
+                      className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-0 py-3 text-base transition-colors placeholder:text-outline-variant/50"
+                      placeholder="输入薯名搜索..."
+                      value={query2}
+                      onChange={e => {
+                        setQuery2(e.target.value);
+                        setSelectedUser2(null);
+                        setForm(prev => ({ ...prev, submitter2_name: '', submitter2_dept: '' }));
+                        setShowDropdown2(true);
+                      }}
+                      onFocus={() => !isOptimizer && setShowDropdown2(true)}
+                      disabled={isOptimizer}
+                    />
+                    {showDropdown2 && filteredUsers2.length > 0 && (
+                      <div
+                        ref={dropdownRef2}
+                        className="absolute top-full left-0 right-0 mt-1 bg-white border border-surface-container-high shadow-xl max-h-48 overflow-y-auto z-50 rounded-lg"
+                      >
+                        {filteredUsers2.map(u => (
+                          <button
+                            key={u.id}
+                            type="button"
+                            className="w-full px-4 py-3 text-left hover:bg-surface-container-low transition-colors flex justify-between items-center"
+                            onClick={() => selectUser2(u)}
+                          >
+                            <span className="text-base font-medium text-on-surface">{u.name}</span>
+                            <span className="text-xs text-outline chinese-text">{u.department}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 提交人2 - 部门自动填充（只读） */}
                   <input
-                    className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-0 py-3 text-base transition-colors placeholder:text-outline-variant/50"
-                    placeholder="Name / 姓名"
-                    value={form.submitter2_name}
-                    onChange={e => updateField('submitter2_name', e.target.value)}
-                    disabled={isOptimizer}
-                  />
-                  <input
-                    className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-0 py-3 text-base transition-colors placeholder:text-outline-variant/50"
-                    placeholder="Dept / 部门"
+                    className="w-full bg-surface-container-low/50 border-0 border-b-2 border-outline/30 px-0 py-3 text-base text-on-surface/70 cursor-not-allowed"
+                    placeholder="选择薯名后自动填充"
                     value={form.submitter2_dept}
-                    onChange={e => updateField('submitter2_dept', e.target.value)}
+                    readOnly
                     disabled={isOptimizer}
                   />
                 </div>
