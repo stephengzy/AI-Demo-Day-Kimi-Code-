@@ -14,6 +14,8 @@ interface Demo {
   submitter2_name: string | null;
   submitter2_dept: string | null;
   background: string | null;
+  solution: string | null;
+  keywords: string | null;
   media_urls: string | string[];
   submitter_name: string;
   submitter_department: string;
@@ -82,7 +84,7 @@ export default function GalleryPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-60px)]">
       {/* Header */}
-      <header className="flex items-center justify-between flex-shrink-0 mb-4 px-12 pt-8 pb-2">
+      <header className="flex items-center justify-between flex-shrink-0 mb-4 px-12 pt-4 pb-2">
         <div>
           <h2 className="text-4xl font-headline font-bold tracking-tight text-on-surface">Gallery</h2>
           <p className="text-lg text-on-surface-variant mt-2 chinese-text">探索所有提交的 Demo 项目</p>
@@ -106,20 +108,27 @@ export default function GalleryPage() {
           </div>
 
           {/* Project List - 独立滚动区域 */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 border border-outline-variant/10 rounded-lg bg-surface-container-low/30 p-2">
+          <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 border border-outline-variant/10 rounded-lg bg-surface-container-low/30">
             {/* Optimizer Section */}
-            <div className="border-b border-outline-variant/30 pb-2 mb-2">
+            <div className="border-b border-outline-variant/30">
+              {/* 吸顶标题栏 */}
               <button 
-                className="flex items-center justify-between w-full py-2 cursor-pointer group"
+                className="sticky top-0 z-10 flex items-center justify-between w-full py-3 px-3 cursor-pointer group bg-surface-container-low/95 backdrop-blur-sm border-b border-outline-variant/20"
                 onClick={() => setOptimizerExpanded(!optimizerExpanded)}
               >
-                <span className="text-xs font-bold tracking-[0.15em] uppercase text-on-surface opacity-80 chinese-text">
-                  Optimizer ({filteredOptimizer.length})
-                </span>
-                <ChevronDown size={20} className={`text-outline transition-transform duration-300 ${optimizerExpanded ? '' : '-rotate-90'}`} />
+                <div className="flex items-center gap-2">
+                  <span className="text-secondary text-sm">⚡️</span>
+                  <span className="text-xs font-bold tracking-[0.15em] uppercase text-on-surface">
+                    Optimizer
+                  </span>
+                  <span className="text-[10px] text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full">
+                    {filteredOptimizer.length}
+                  </span>
+                </div>
+                <ChevronDown size={18} className={`text-outline transition-transform duration-300 ${optimizerExpanded ? '' : '-rotate-90'}`} />
               </button>
               {optimizerExpanded && (
-                <div className="space-y-2 pt-1">
+                <div className="space-y-2 p-2">
                   {filteredOptimizer.map(demo => (
                     <div
                       key={demo.id}
@@ -142,15 +151,24 @@ export default function GalleryPage() {
                         {demo.summary}
                       </p>
                       
-                      {/* 底部：作者 + 标签 */}
+                      {/* 底部：作者 + 关键词 */}
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-outline chinese-text">
+                        <span className="text-xs text-outline">
                           {demo.submitter1_name}
                         </span>
-                        <span className="px-2 py-0.5 bg-surface-container-high text-[10px] font-bold text-on-surface-variant uppercase tracking-wide rounded">
-                          {demo.track}
-                        </span>
                       </div>
+                      {demo.keywords && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {demo.keywords.split(/[、,，]/).slice(0, 3).map((kw, i) => (
+                            <span key={i} className="text-[10px] px-1.5 py-0.5 bg-secondary/10 text-secondary rounded">
+                              {kw.trim()}
+                            </span>
+                          ))}
+                          {demo.keywords.split(/[、,，]/).length > 3 && (
+                            <span className="text-[10px] text-on-surface-variant">+{demo.keywords.split(/[、,，]/).length - 3}</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -158,18 +176,25 @@ export default function GalleryPage() {
             </div>
 
             {/* Builder Section */}
-            <div className="border-b border-outline-variant/30 pb-2">
+            <div className="border-b border-outline-variant/30">
+              {/* 吸顶标题栏 */}
               <button 
-                className="flex items-center justify-between w-full py-2 cursor-pointer group"
+                className="sticky top-0 z-10 flex items-center justify-between w-full py-3 px-3 cursor-pointer group bg-surface-container-low/95 backdrop-blur-sm border-b border-outline-variant/20"
                 onClick={() => setBuilderExpanded(!builderExpanded)}
               >
-                <span className="text-xs font-bold tracking-[0.15em] uppercase text-on-surface opacity-80">
-                  Builder ({filteredBuilder.length})
-                </span>
-                <ChevronDown size={20} className={`text-outline transition-transform duration-300 ${builderExpanded ? '' : '-rotate-90'}`} />
+                <div className="flex items-center gap-2">
+                  <span className="text-tertiary text-sm">🛠️</span>
+                  <span className="text-xs font-bold tracking-[0.15em] uppercase text-on-surface">
+                    Builder
+                  </span>
+                  <span className="text-[10px] text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full">
+                    {filteredBuilder.length}
+                  </span>
+                </div>
+                <ChevronDown size={18} className={`text-outline transition-transform duration-300 ${builderExpanded ? '' : '-rotate-90'}`} />
               </button>
               {builderExpanded && (
-                <div className="space-y-2 pt-1">
+                <div className="space-y-2 p-2">
                   {filteredBuilder.map(demo => (
                     <div
                       key={demo.id}
@@ -192,15 +217,24 @@ export default function GalleryPage() {
                         {demo.summary}
                       </p>
                       
-                      {/* 底部：作者 + 标签 */}
+                      {/* 底部：作者 + 关键词 */}
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-outline">
                           {demo.submitter1_name}{demo.submitter2_name ? ` + ${demo.submitter2_name}` : ''}
                         </span>
-                        <span className="px-2 py-0.5 bg-surface-container-high text-[10px] font-bold text-on-surface-variant uppercase tracking-wide rounded">
-                          {demo.track}
-                        </span>
                       </div>
+                      {demo.keywords && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {demo.keywords.split(/[、,，]/).slice(0, 3).map((kw, i) => (
+                            <span key={i} className="text-[10px] px-1.5 py-0.5 bg-tertiary/10 text-tertiary rounded">
+                              {kw.trim()}
+                            </span>
+                          ))}
+                          {demo.keywords.split(/[、,，]/).length > 3 && (
+                            <span className="text-[10px] text-on-surface-variant">+{demo.keywords.split(/[、,，]/).length - 3}</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -225,31 +259,56 @@ export default function GalleryPage() {
                   )}
                 </div>
                 <h1 className="text-3xl font-headline font-bold text-on-surface">{selectedDemo.name}</h1>
+                {/* One-Line Pitch 移到标题下方 */}
+                <p className="mt-3 text-base text-on-surface-variant leading-relaxed">
+                  {selectedDemo.summary}
+                </p>
               </div>
               <div className="flex-1 overflow-y-auto custom-scrollbar px-8 py-6">
                 <div className="flex flex-col gap-8">
-                  {/* The One-Line Pitch */}
-                  <div className="pb-6 border-b border-outline-variant/20">
-                    <p className="text-xs uppercase tracking-widest text-secondary font-bold mb-2">The Pitch / 一句话介绍</p>
-                    <p className="text-lg text-on-surface leading-relaxed chinese-text font-medium">
-                      {selectedDemo.summary}
-                    </p>
-                  </div>
-
-                  {/* The "Why" */}
-                  {selectedDemo.background && (
-                    <div className="pb-6 border-b border-outline-variant/20">
-                      <p className="text-xs uppercase tracking-widest text-outline font-bold mb-3">The "Why" / 背后的故事</p>
-                      <p className="text-on-surface-variant leading-relaxed text-base chinese-text">
-                        {selectedDemo.background}
-                      </p>
+                  {/* 4. The Story - Why & How */}
+                  {(selectedDemo.background || selectedDemo.solution) && (
+                    <div className="pb-6 border-b border-outline-variant/20 space-y-6">
+                      {/* Why */}
+                      {selectedDemo.background && (
+                        <div>
+                          <p className="text-xs uppercase tracking-widest text-secondary font-bold mb-3">Why / 为什么要做</p>
+                          <p className="text-on-surface-variant leading-relaxed text-base">
+                            {selectedDemo.background}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* How */}
+                      {selectedDemo.solution && (
+                        <div>
+                          <p className="text-xs uppercase tracking-widest text-tertiary font-bold mb-3">How / 怎么解决的</p>
+                          <p className="text-on-surface-variant leading-relaxed text-base">
+                            {selectedDemo.solution}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Keywords */}
+                      {selectedDemo.keywords && (
+                        <div>
+                          <p className="text-xs uppercase tracking-widest text-primary font-bold mb-3">关键词 / Skills</p>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedDemo.keywords.split(/[、,，]/).map((kw, i) => (
+                              <span key={i} className="text-xs px-2.5 py-1 bg-primary/10 text-primary rounded-full">
+                                {kw.trim()}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {/* Who's the mastermind */}
+                  {/* 2. Who's the mastermind */}
                   <div className="pb-6 border-b border-outline-variant/20">
-                    <p className="text-xs uppercase tracking-widest text-outline font-bold mb-3">Mastermind / 负责人</p>
-                    <div className="flex items-center gap-2 text-base text-on-surface chinese-text">
+                    <p className="text-xs uppercase tracking-widest text-outline font-bold mb-3">Who's the Mastermind / 负责人</p>
+                    <div className="flex items-center gap-2 text-base text-on-surface">
                       <span className="font-semibold">{selectedDemo.submitter1_name}</span>
                       <span className="text-on-surface-variant">({selectedDemo.submitter1_dept})</span>
                       {selectedDemo.submitter2_name && (
@@ -262,11 +321,11 @@ export default function GalleryPage() {
                     </div>
                   </div>
 
-                  {/* Show Us the Goods */}
+                  {/* 5. Show Us the Goods */}
                   <div className="space-y-6">
                     {selectedDemo.demo_link && (
                       <section>
-                        <p className="text-xs uppercase tracking-widest text-outline font-bold mb-3">The Goods / 作品链接</p>
+                        <p className="text-xs uppercase tracking-widest text-outline font-bold mb-3">Show Us the Goods / 作品链接</p>
                         <a 
                           className="inline-flex items-center gap-2 px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest rounded-lg text-primary font-medium text-sm transition-colors"
                           href={selectedDemo.demo_link}
@@ -274,13 +333,13 @@ export default function GalleryPage() {
                           rel="noopener noreferrer"
                         >
                           <ExternalLink size={16} />
-                          <span>View Demo / 查看演示</span>
+                          <span>查看演示</span>
                         </a>
                       </section>
                     )}
                     {mediaUrls.length > 0 && (
                       <section>
-                        <p className="text-xs uppercase tracking-widest text-outline font-bold mb-3">Media / 媒体</p>
+                        <p className="text-xs uppercase tracking-widest text-outline font-bold mb-3">截图/录屏</p>
                         <div className="grid grid-cols-2 gap-4">
                           {mediaUrls.map((url: string, i: number) => (
                             <div key={i} className="aspect-video bg-surface-container-highest rounded-lg overflow-hidden">

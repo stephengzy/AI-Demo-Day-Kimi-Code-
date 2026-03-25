@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Loader2, Star, CheckCircle, AlertCircle, Trophy } from 'lucide-react';
+import { Loader2, Star, CheckCircle, AlertCircle, Trophy, Lock } from 'lucide-react';
 import { BEST_DEMO_AWARDS, SPECIAL_AWARDS } from '@/lib/constants';
 
 interface LeaderboardItem {
@@ -38,11 +38,34 @@ export default function LeaderboardPage() {
   const [votingId, setVotingId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'best' | 'special'>('best');
   const [message, setMessage] = useState<{text: string, type: 'success' | 'error'} | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [votingStatus, setVotingStatus] = useState<{
+    isVotingOpen: boolean;
+    notice: string;
+  } | null>(null);
 
   useEffect(() => {
+    // 获取用户信息
+    fetch('/api/auth/me')
+      .then(r => r.json())
+      .then(d => setUser(d.user))
+      .catch(() => {});
+    
     fetchAllData();
     fetchMyVotes();
+    fetchVotingStatus();
   }, []);
+
+  // 获取投票状态
+  async function fetchVotingStatus() {
+    try {
+      const res = await fetch('/api/config');
+      const data = await res.json();
+      setVotingStatus(data);
+    } catch (error) {
+      console.error('Failed to fetch voting status:', error);
+    }
+  }
 
   // 清除消息
   useEffect(() => {
@@ -100,6 +123,12 @@ export default function LeaderboardPage() {
   }
 
   async function handleVote(demoId: number, voteType: string) {
+    // 检查投票是否开放
+    if (votingStatus && !votingStatus.isVotingOpen) {
+      setMessage({ text: votingStatus.notice, type: 'error' });
+      return;
+    }
+
     const isVoted = hasVotedFor(demoId, voteType);
     
     setVotingId(demoId);
@@ -146,6 +175,31 @@ export default function LeaderboardPage() {
   }
 
   function VoteButton({ item, voteType, maxVotes }: { item: LeaderboardItem; voteType: string; maxVotes: number }) {
+    // 投票未开放 - 显示锁定状态
+    if (votingStatus && !votingStatus.isVotingOpen) {
+      return (
+        <button
+          disabled
+          className="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-surface-container-high text-outline cursor-not-allowed min-w-[70px] flex items-center justify-center gap-1"
+        >
+          <Lock size={12} />
+          未开始
+        </button>
+      );
+    }
+
+    // 游客模式 - 显示登录提示
+    if (!user) {
+      return (
+        <button
+          onClick={() => setMessage({ text: '游客模式无法投票，请先登录', type: 'error' })}
+          className="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-surface-container-high text-outline hover:text-on-surface transition-colors min-w-[70px]"
+        >
+          Vote
+        </button>
+      );
+    }
+
     const isVoted = hasVotedFor(item.id, voteType);
     const votesUsed = getVotesUsed(voteType, maxVotes);
     const canVote = isVoted || votesUsed < maxVotes;
@@ -376,6 +430,23 @@ export default function LeaderboardPage() {
         <p className="text-on-surface-variant text-base max-w-2xl leading-relaxed">
           最佳Demo奖每个赛道可投2票，专项奖每个奖项可投1票。评委投票权重为2票。
         </p>
+        {/* 投票状态提示 */}
+        {votingStatus && !votingStatus.isVotingOpen && (
+          <div className="mt-4 p-4 bg-error-container rounded-lg text-on-error-container">
+            <div className="flex items-start gap-3">
+              <Lock size={20} className="mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium">投票暂未开始</p>
+                <p className="text-sm text-on-error-container/80 mt-1">{votingStatus.notice}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        {!user && votingStatus?.isVotingOpen && (
+          <div className="mt-4 p-3 bg-surface-container-low rounded-lg text-sm text-on-surface-variant inline-block">
+            👀 您当前以游客身份浏览，<a href="/" className="text-primary hover:underline">登录</a>后可参与投票
+          </div>
+        )}
       </header>
 
       {/* Tab Navigation */}

@@ -49,9 +49,9 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { name, summary, track, demo_link, submitter1_name, submitter1_dept, submitter2_name, submitter2_dept, background, media_urls } = body;
+  const { name, summary, track, demo_link, submitter1_name, submitter1_dept, submitter2_name, submitter2_dept, background, solution, keywords, media_urls } = body;
 
-  if (!name || !summary || !track || !submitter1_name || !submitter1_dept) {
+  if (!name || !summary || !track || !submitter1_name || !submitter1_dept || !background || !solution) {
     return NextResponse.json({ error: '请填写必填项' }, { status: 400 });
   }
 
@@ -105,6 +105,8 @@ export async function POST(request: Request) {
     submitter2_name: submitter2_name || null,
     submitter2_dept: submitter2_dept || null,
     background: background || null,
+    solution: solution || null,
+    keywords: keywords || null,
     media_urls: media_urls || [],
     submitted_by: user.id,
   };

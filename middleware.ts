@@ -4,23 +4,8 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow entry portal, API routes, and static files
-  if (
-    pathname === '/' ||
-    pathname.startsWith('/api/') ||
-    pathname.startsWith('/_next/') ||
-    pathname.startsWith('/uploads/') ||
-    pathname.includes('.')
-  ) {
-    return NextResponse.next();
-  }
-
-  // Check for auth cookie
-  const userCookie = request.cookies.get('demo_day_user');
-  if (!userCookie?.value) {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
-
+  // Allow all routes - 游客模式，无需登录即可浏览
+  // API 路由内部自行处理权限验证
   return NextResponse.next();
 }
 

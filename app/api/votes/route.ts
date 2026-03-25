@@ -3,6 +3,28 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 import { VOTE_TYPES, BEST_DEMO_AWARDS, SPECIAL_AWARDS, type VoteTypeId } from '@/lib/constants';
 
+// 检查投票是否开放
+async function isVotingOpen(supabase: any): Promise<{ open: boolean; notice: string }> {
+  // 从数据库获取配置
+  const { data: config } = await supabase
+    .from('site_config')
+    .select('*')
+    .in('key', ['voting_enabled', 'voting_notice']) as { data: any[]; error: any };
+  
+  // 解析配置
+  const configMap: Record<string, string> = {};
+  if (config && Array.isArray(config)) {
+    config.forEach((item: any) => {
+      configMap[item.key] = item.value || '';
+    });
+  }
+  
+  const enabled = configMap['voting_enabled'] === 'true';
+  const notice = configMap['voting_notice'] || '投票暂未开始，敬请期待';
+  
+  return { open: enabled, notice };
+}
+
 async function getCurrentUser() {
   const cookieStore = await cookies();
   const userId = cookieStore.get('demo_day_user')?.value;
@@ -44,6 +66,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '请先登录' }, { status: 401 });
   }
 
+  const supabase = getSupabaseAdmin();
+
+  // 检查投票是否开放
+  const votingCheck = await isVotingOpen(supabase);
+  if (!votingCheck.open) {
+    return NextResponse.json({ error: votingCheck.notice }, { status: 403 });
+  }
+
   const { demo_id, vote_type } = await request.json();
 
   if (!demo_id || !vote_type) {
@@ -54,8 +84,6 @@ export async function POST(request: Request) {
   if (!voteConfig) {
     return NextResponse.json({ error: '无效的投票类型' }, { status: 400 });
   }
-
-  const supabase = getSupabaseAdmin();
 
   // 验证 demo 存在
   const { data: demo, error: demoError } = await supabase

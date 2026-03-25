@@ -1,9 +1,9 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Compass, LayoutGrid, Trophy, MessageSquare, Plus } from 'lucide-react';
+import { Compass, LayoutGrid, Trophy, MessageSquare, Plus, LogIn, LogOut } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageProvider';
 
 interface User {
@@ -15,14 +15,21 @@ interface User {
 
 export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
 
   useEffect(() => {
     fetch('/api/auth/me')
       .then(r => r.json())
-      .then(d => setUser(d.user))
-      .catch(() => {});
+      .then(d => {
+        setUser(d.user);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
   }, []);
 
   const NAV_ITEMS = [
@@ -32,17 +39,26 @@ export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }
     { href: '/square', label: t.nav.square, icon: MessageSquare },
   ];
 
+  const handleActionClick = () => {
+    if (user) {
+      onSubmitClick();
+    } else {
+      router.push('/');
+    }
+  };
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    setUser(null);
+    router.push('/');
+  };
+
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 bg-[#f3f4ee] flex flex-col py-8 px-6 gap-y-4 z-50">
       {/* Branding */}
       <div className="mb-8 px-2">
-        <h1 className="text-2xl font-headline font-bold italic text-[#1A1A1A] leading-tight">AI Demo Day</h1>
-        <div className="mt-3 space-y-1">
-          <p className="font-headline italic text-sm leading-relaxed text-[#5f5e5e] tracking-normal">Xiaohongshu</p>
-          <p className="font-headline italic text-sm leading-relaxed text-[#5f5e5e] tracking-normal">Strategy</p>
-          <p className="font-headline italic text-sm leading-relaxed text-[#5f5e5e] tracking-normal">Investment</p>
-          <p className="font-headline italic text-sm leading-relaxed text-[#5f5e5e] tracking-normal">User Research</p>
-        </div>
+        <h1 className="text-3xl font-headline font-bold text-on-surface leading-tight">AI Demo Day</h1>
+        <p className="text-sm text-on-surface-variant mt-2">小红书战略 / 投资 / 用户研究</p>
       </div>
 
       {/* Navigation */}
@@ -67,28 +83,57 @@ export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }
         })}
       </nav>
 
-      {/* Submit Button */}
+      {/* Action Button - Submit or Login */}
       <div className="px-2 mb-4">
-        <button
-          onClick={onSubmitClick}
-          className="w-full flex items-center justify-center gap-2 bg-[#1A1A1A] text-white py-3 px-4 rounded-lg hover:opacity-90 transition-all shadow-sm group active:scale-95"
-        >
-          <Plus size={16} strokeWidth={2.5} />
-          <span className="font-headline tracking-tight text-base">{t.nav.submit}</span>
-        </button>
+        {!loading && (
+          <button
+            onClick={handleActionClick}
+            className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg transition-all shadow-sm group active:scale-95 ${
+              user
+                ? 'bg-[#1A1A1A] text-white hover:opacity-90'
+                : 'bg-surface-container-high text-on-surface hover:bg-surface-container-highest border border-outline-variant/30'
+            }`}
+          >
+            {user ? (
+              <>
+                <Plus size={16} strokeWidth={2.5} />
+                <span className="font-headline tracking-tight text-base">{t.nav.submit}</span>
+              </>
+            ) : (
+              <>
+                <LogIn size={16} strokeWidth={2.5} />
+                <span className="font-headline tracking-tight text-base">{t.nav.login}</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
-      {/* User Info */}
-      {user && (
-        <div className="px-4">
-          <div className="flex items-center gap-3">
+      {/* User Info - 已登录显示用户信息和退出按钮，未登录显示游客状态 */}
+      <div className="px-4">
+        {loading ? (
+          <div className="text-xs text-on-surface-variant">Loading...</div>
+        ) : user ? (
+          <div className="flex items-center justify-between">
             <div className="flex flex-col">
               <span className="font-headline font-bold text-lg text-on-surface chinese-text">{user.name}</span>
               <span className="text-xs text-on-surface-variant uppercase tracking-wider mt-0.5 font-medium chinese-text">{user.department}</span>
             </div>
+            <button
+              onClick={handleLogout}
+              className="p-2 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-lg transition-colors"
+              title="退出登录"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-outline-variant"></span>
+            <span className="text-sm text-on-surface-variant">{t.nav.guest}</span>
+          </div>
+        )}
+      </div>
     </aside>
   );
 }

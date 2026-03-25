@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { 
   CheckCircle, AlertCircle, Check, Loader2, PlusCircle, Trash2, Trash, 
   LayoutGrid, Trophy, MessageSquare, Search, ChevronLeft, ChevronRight,
-  X, ExternalLink, User, Calendar, Hash
+  X, ExternalLink, Lock, Unlock, Clock
 } from 'lucide-react';
 
 interface Demo {
@@ -53,6 +53,18 @@ export default function AdminPage() {
   const [seedLoading, setSeedLoading] = useState(false);
   const [clearLoading, setClearLoading] = useState(false);
   const [result, setResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  
+  // 投票控制
+  const [votingStatus, setVotingStatus] = useState<{
+    isVotingOpen: boolean;
+    notice: string;
+    error?: string;
+  } | null>(null);
+  const [votingLoading, setVotingLoading] = useState(false);
+  const [setupLoading, setSetupLoading] = useState(false);
+  const [needsSetup, setNeedsSetup] = useState(false);
+  const [editingNotice, setEditingNotice] = useState('');
+  const [isEditingNotice, setIsEditingNotice] = useState(false);
 
   // 验证权限
   useEffect(() => {
@@ -114,6 +126,91 @@ export default function AdminPage() {
       loadMessages();
     }
   }, [messagesPage, messagesSearch, activeTab, loading]);
+
+  // 加载投票状态
+  const loadVotingStatus = async () => {
+    try {
+      const res = await fetch('/api/config');
+      const data = await res.json();
+      setVotingStatus(data);
+      setEditingNotice(data.notice || '');
+      setNeedsSetup(data.error === 'TABLE_NOT_FOUND');
+    } catch (error) {
+      console.error('Failed to load voting status:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (!loading && activeTab === 'tools') {
+      loadVotingStatus();
+    }
+  }, [activeTab, loading]);
+
+  // 初始化 site_config 表
+  const setupConfig = async () => {
+    setSetupLoading(true);
+    try {
+      const res = await fetch('/api/setup', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setResult({ type: 'success', message: '配置表初始化成功' });
+        loadVotingStatus();
+      } else {
+        setResult({ type: 'error', message: data.error || '初始化失败' });
+      }
+    } catch (error: any) {
+      setResult({ type: 'error', message: error.message });
+    } finally {
+      setSetupLoading(false);
+    }
+  };
+
+  // 切换投票开关
+  const toggleVoting = async (enabled: boolean) => {
+    setVotingLoading(true);
+    try {
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setResult({ type: 'success', message: enabled ? '投票已开启' : '投票已关闭' });
+        loadVotingStatus();
+      } else {
+        setResult({ type: 'error', message: data.error || '操作失败' });
+      }
+    } catch (error: any) {
+      setResult({ type: 'error', message: error.message });
+    } finally {
+      setVotingLoading(false);
+    }
+  };
+
+  // 保存公告
+  const saveNotice = async () => {
+    setVotingLoading(true);
+    try {
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notice: editingNotice }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setResult({ type: 'success', message: '公告已更新' });
+        setIsEditingNotice(false);
+        loadVotingStatus();
+      } else {
+        setResult({ type: 'error', message: data.error || '保存失败' });
+      }
+    } catch (error: any) {
+      setResult({ type: 'error', message: error.message });
+    } finally {
+      setVotingLoading(false);
+    }
+  };
 
   // 删除 Demo
   async function deleteDemo(demo: Demo) {
@@ -493,6 +590,159 @@ export default function AdminPage() {
         {/* Tools Tab */}
         {activeTab === 'tools' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 投票控制面板 */}
+            <div className={`bg-surface-container-low p-8 rounded-xl border ${needsSetup ? 'border-error/50' : 'border-outline-variant/20'}`}>
+              {/* 需要初始化的警告 */}
+              {needsSetup && (
+                <div className="mb-6 p-4 bg-error-container rounded-lg">
+                  <div className="flex items-center gap-2 text-on-error-container font-medium mb-1">
+                    <AlertCircle size={18} />
+                    <span>配置表未初始化</span>
+                  </div>
+                  <p className="text-sm text-on-error-container/80">
+                    请先点击下方"初始化配置"按钮创建数据表
+                  </p>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${votingStatus?.isVotingOpen ? 'bg-secondary/10' : 'bg-error/10'}`}>
+                    {votingStatus?.isVotingOpen ? (
+                      <Unlock size={24} className="text-secondary" />
+                    ) : (
+                      <Lock size={24} className="text-error" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-headline text-2xl font-bold text-on-surface">投票控制</h3>
+                    <p className="text-sm text-on-surface-variant">
+                      当前状态: 
+                      <span className={`ml-1 font-medium ${votingStatus?.isVotingOpen ? 'text-secondary' : 'text-error'}`}>
+                        {votingStatus?.isVotingOpen ? '已开启' : '已关闭'}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* 开关按钮 */}
+                <button
+                  onClick={() => toggleVoting(!votingStatus?.isVotingOpen)}
+                  disabled={votingLoading || needsSetup}
+                  className={`px-6 py-3 rounded-lg font-medium transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 ${
+                    votingStatus?.isVotingOpen 
+                      ? 'bg-error text-on-error hover:opacity-90' 
+                      : 'bg-secondary text-on-secondary hover:opacity-90'
+                  }`}
+                >
+                  {votingLoading ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : votingStatus?.isVotingOpen ? (
+                    <>
+                      <Lock size={16} />
+                      关闭投票
+                    </>
+                  ) : (
+                    <>
+                      <Unlock size={16} />
+                      开启投票
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* 公告编辑 */}
+              <div className="bg-surface-container p-4 rounded-lg">
+                <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                  投票公告（投票关闭时显示）
+                </label>
+                {isEditingNotice ? (
+                  <div className="space-y-3">
+                    <textarea
+                      value={editingNotice}
+                      onChange={(e) => setEditingNotice(e.target.value)}
+                      placeholder="请输入公告内容，例如：投票将于 4月1日 12:00 开始"
+                      className="w-full p-3 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm focus:border-primary focus:outline-none resize-none"
+                      rows={3}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={saveNotice}
+                        disabled={votingLoading}
+                        className="px-4 py-2 bg-secondary text-on-secondary rounded-lg text-sm font-medium hover:opacity-90 transition-colors"
+                      >
+                        保存
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsEditingNotice(false);
+                          setEditingNotice(votingStatus?.notice || '');
+                        }}
+                        className="px-4 py-2 bg-surface-container-high text-on-surface rounded-lg text-sm hover:bg-surface-container-highest transition-colors"
+                      >
+                        取消
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-sm text-on-surface flex-1">
+                      {votingStatus?.notice || '暂无公告'}
+                    </p>
+                    <button
+                      onClick={() => setIsEditingNotice(true)}
+                      className="text-primary text-sm hover:underline flex-shrink-0"
+                    >
+                      编辑
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 初始化配置表 */}
+            <div className="bg-surface-container-low p-8 rounded-xl">
+              <h3 className="font-headline text-2xl font-bold mb-4 text-on-surface">初始化配置</h3>
+              <p className="text-on-surface-variant mb-6 text-base">
+                首次使用需要创建 site_config 表并初始化默认配置：
+              </p>
+              <ul className="text-sm text-on-surface-variant space-y-2 mb-8">
+                <li className="flex items-center gap-2">
+                  <Check size={16} className="text-secondary" />
+                  创建 site_config 表
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check size={16} className="text-secondary" />
+                  设置默认投票开始时间 (2025-04-01 12:00:00)
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check size={16} className="text-secondary" />
+                  初始化投票开关状态
+                </li>
+              </ul>
+              <button
+                onClick={setupConfig}
+                disabled={setupLoading}
+                className={`w-full py-4 rounded-lg font-bold uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 ${
+                  needsSetup 
+                    ? 'bg-error text-on-error hover:opacity-90' 
+                    : 'bg-primary text-on-primary hover:bg-primary-dim'
+                }`}
+              >
+                {setupLoading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    初始化中...
+                  </>
+                ) : (
+                  <>
+                    <Clock size={16} />
+                    {needsSetup ? '⚠️ 点击初始化配置表' : '初始化配置表'}
+                  </>
+                )}
+              </button>
+            </div>
+
             {/* 生成测试数据 */}
             <div className="bg-surface-container-low p-8 rounded-xl">
               <h3 className="font-headline text-2xl font-bold mb-4 text-on-surface">生成测试数据</h3>

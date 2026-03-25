@@ -1,5 +1,5 @@
-// 语言配置
-export type Language = 'zh' | 'en';
+// 语言配置 - 暂时只支持中文，简化资源加载
+export type Language = 'zh';
 
 export const translations = {
   zh: {
@@ -10,6 +10,8 @@ export const translations = {
       leaderboard: '排行榜',
       square: '广场',
       submit: '提交 Demo',
+      login: '登录',
+      guest: '游客',
       admin: '管理后台',
     },
     // 登录页
@@ -24,6 +26,7 @@ export const translations = {
       deptPlaceholder: '选择薯名后自动填充',
       submit: '进入',
       submitting: '登录中...',
+      guestEntry: '👀 以游客身份浏览',
       errorNoUser: '请选择你的薯名',
       errorNetwork: '网络错误，请重试',
       notFound: '未找到匹配用户',
@@ -155,161 +158,6 @@ export const translations = {
       error: '出错了',
       retry: '重试',
       back: '返回',
-    },
-  },
-  en: {
-    // Navigation
-    nav: {
-      guide: 'Guide',
-      gallery: 'Gallery',
-      leaderboard: 'Leaderboard',
-      square: 'Square',
-      submit: 'Submit Demo',
-      admin: 'Admin',
-    },
-    // Login
-    login: {
-      title: 'AI Demo Day',
-      subtitle: 'Xiaohongshu Strategy / Investment / User Research',
-      registration: 'Registration',
-      description: 'Enter your username and department',
-      nameLabel: 'Username',
-      namePlaceholder: 'e.g. Hengyu',
-      deptLabel: 'Department',
-      deptPlaceholder: 'Auto-filled after selection',
-      submit: 'ENTER',
-      submitting: 'ENTERING...',
-      errorNoUser: 'Please select your username',
-      errorNetwork: 'Network error, please retry',
-      notFound: 'No matching user found',
-    },
-    // Guide
-    guide: {
-      badge: '2025 SPRING',
-      title: 'Evolution: AI Demo Day',
-      subtitle: 'Strategy, Research & Investment Special',
-      status: 'APPLICATIONS OPEN',
-      whyTitle: 'Why Evolution?',
-      whyContent1: 'Stop talking about the future. Start shipping it.',
-      whyContent2: 'The AI Native era isn\'t just coming; it\'s already here, and it\'s rewriting the rules of how we think, work, and create. As the "brains" of rednote, the Strategists, User Researchers, and Investors, we aren\'t just here to predict the future. We are here to build it.',
-      whatTitle: 'What is this?',
-      whatContent: 'AI Demo Day is an internal innovation showcase platform. Whether you are using AI to boost efficiency (Optimizer), or building AI products (Builder), this is the stage to showcase your Evolution.',
-      categories: {
-        optimizer: {
-          title: '⚡️ Optimizer',
-          desc: 'Individuals using AI to boost work efficiency',
-        },
-        builder: {
-          title: '🛠️ Builder',
-          desc: 'Teams building AI products',
-        },
-      },
-    },
-    // Gallery
-    gallery: {
-      title: 'Gallery',
-      subtitle: 'Explore all submitted Demo projects',
-      search: 'Search projects...',
-      optimizer: 'Optimizer Track',
-      builder: 'Builder Track',
-      noResults: 'No matching projects found',
-      items: 'projects',
-      viewDemo: 'View Demo',
-      trackLabel: 'Track',
-      teamLabel: 'Team',
-      backgroundLabel: 'Background',
-      pitchLabel: 'One-Line Pitch',
-    },
-    // Square
-    square: {
-      title: 'Square',
-      subtitle: 'Find partners, share ideas, discuss',
-      placeholder: 'Share your ideas, find partners, ask questions...',
-      post: 'Post',
-      posting: 'Posting...',
-      empty: 'No messages yet, be the first!',
-      upvote: 'Upvote',
-    },
-    // Leaderboard
-    leaderboard: {
-      title: 'Leaderboard',
-      subtitle: 'Live voting results',
-      myVotes: 'My Votes',
-      optimizerAward: 'Best Optimizer',
-      builderAward: 'Best Builder',
-      vote: 'Vote',
-      voted: 'Voted',
-      maxVotes: 'Max {max} votes',
-      firstPlace: 'Current #1',
-      noData: 'No data yet',
-      score: 'pts',
-      votes: 'votes',
-    },
-    // Submit
-    submit: {
-      portal: 'Submission Portal',
-      title: 'Join the Evolution.',
-      subtitle: 'Stop talking about the future. Start shipping it.',
-      step1: {
-        title: "1. Who's the mastermind?",
-        desc: "Project owner (solo or duo names)",
-        nameLabel: "Username *",
-        namePlaceholder: "Search username...",
-        deptLabel: "Department *",
-        partnerLabel: "Partner",
-        partnerDesc: "(Optional for Builder / Not needed for Optimizer)",
-      },
-      step2: {
-        title: "2. Give it a Codename",
-        desc: "Give it a punchy name",
-        placeholder: "Project Name *",
-      },
-      step3: {
-        title: "3. Choose Your Fighter",
-        desc: "Choose your track",
-        optimizer: "The Solo Efficiency Warrior",
-        builder: "The Product Visionary (Team allowed)",
-      },
-      step4: {
-        title: "4. The \"Why\"",
-        desc: "What problem does it solve? What's the story?",
-        placeholder: "Why did you make it? What problem are you killing? *",
-      },
-      step5: {
-        title: "5. The One-Line Pitch",
-        desc: "Elevator pitch, one sentence to impress",
-        placeholder: "One sentence only. No jargon, just impact. *",
-      },
-      step6: {
-        title: "6. Show Us the Goods",
-        desc: "Show your work (Demo, docs, GitHub)",
-        placeholder: "Link to demo / doc / GitHub",
-      },
-      media: {
-        label: "Media (Optional)",
-        upload: "Drag & drop or click to upload",
-        uploading: "Uploading...",
-        uploaded: "{count} files uploaded",
-      },
-      cancel: "Cancel",
-      submit: "Submit",
-      submitting: "Submitting...",
-      success: "Submitted!",
-      successDesc: "Your evolution is now in the archive.",
-    },
-    // Common
-    common: {
-      required: 'Required',
-      optional: 'Optional',
-      cancel: 'Cancel',
-      confirm: 'Confirm',
-      delete: 'Delete',
-      edit: 'Edit',
-      save: 'Save',
-      loading: 'Loading...',
-      error: 'Error',
-      retry: 'Retry',
-      back: 'Back',
     },
   },
 };

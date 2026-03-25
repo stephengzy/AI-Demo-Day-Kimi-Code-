@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { translations, Language, Translations } from '@/lib/i18n';
 
 interface LanguageContextType {
@@ -12,20 +12,12 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Language>('zh');
+  // 固定中文，暂时不支持切换
+  const [lang] = useState<Language>('zh');
 
-  // 从 localStorage 读取语言设置
-  useEffect(() => {
-    const saved = localStorage.getItem('demo-day-lang') as Language;
-    if (saved && (saved === 'zh' || saved === 'en')) {
-      setLang(saved);
-    }
-  }, []);
-
-  // 保存语言设置
-  const handleSetLang = (newLang: Language) => {
-    setLang(newLang);
-    localStorage.setItem('demo-day-lang', newLang);
+  // 简化：不支持语言切换，减少状态管理
+  const handleSetLang = () => {
+    console.log('Language switch is temporarily disabled');
   };
 
   const t = translations[lang];

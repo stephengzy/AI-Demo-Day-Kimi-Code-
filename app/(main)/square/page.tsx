@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, AlertCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface Message {
   id: number;
@@ -22,8 +23,16 @@ export default function SquarePage() {
   const [newTitle, setNewTitle] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
+    // 获取用户信息
+    fetch('/api/auth/me')
+      .then(r => r.json())
+      .then(d => setUser(d.user))
+      .catch(() => {});
+    
     fetchMessages();
   }, []);
 
@@ -42,6 +51,12 @@ export default function SquarePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!newContent.trim()) return;
+
+    // 游客模式检查
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -67,6 +82,12 @@ export default function SquarePage() {
   }
 
   async function handleUpvote(messageId: number) {
+    // 游客模式检查
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
     try {
       const res = await fetch(`/api/messages/${messageId}/upvote`, {
         method: 'POST',
@@ -110,33 +131,45 @@ export default function SquarePage() {
 
       {/* Message Entry Section */}
       <section className="mb-12 bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/20 shadow-sm">
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="标题（可选）"
-              value={newTitle}
-              onChange={e => setNewTitle(e.target.value)}
-              className="w-full bg-transparent border-none border-b border-outline/30 focus:ring-0 focus:border-primary text-base font-headline font-medium mb-3 p-0 placeholder:text-outline"
-            />
-            <textarea
-              placeholder="分享你的需求或想法..."
-              value={newContent}
-              onChange={e => setNewContent(e.target.value)}
-              className="w-full bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-outline p-0 text-base resize-none h-24"
-            />
-          </div>
-          <div className="flex justify-between items-center pt-4 border-t border-outline-variant/10">
-            <span className="text-xs text-outline">支持 Markdown 格式</span>
+        {user ? (
+          <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="标题（可选）"
+                value={newTitle}
+                onChange={e => setNewTitle(e.target.value)}
+                className="w-full bg-transparent border-none border-b border-outline/30 focus:ring-0 focus:border-primary text-base font-headline font-medium mb-3 p-0 placeholder:text-outline"
+              />
+              <textarea
+                placeholder="分享你的需求或想法..."
+                value={newContent}
+                onChange={e => setNewContent(e.target.value)}
+                className="w-full bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-outline p-0 text-base resize-none h-24"
+              />
+            </div>
+            <div className="flex justify-between items-center pt-4 border-t border-outline-variant/10">
+              <span className="text-xs text-outline">支持 Markdown 格式</span>
+              <button
+                type="submit"
+                disabled={submitting || !newContent.trim()}
+                className="px-6 py-2 bg-on-surface text-surface rounded-md text-xs uppercase tracking-widest hover:opacity-90 transition-opacity active:scale-95 disabled:opacity-50"
+              >
+                {submitting ? '发布中...' : 'Post Need'}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-on-surface-variant mb-4">游客模式只能浏览，无法发布内容</p>
             <button
-              type="submit"
-              disabled={submitting || !newContent.trim()}
-              className="px-6 py-2 bg-on-surface text-surface rounded-md text-xs uppercase tracking-widest hover:opacity-90 transition-opacity active:scale-95 disabled:opacity-50"
+              onClick={() => setShowLoginPrompt(true)}
+              className="px-6 py-2 bg-primary text-on-primary rounded-md text-xs uppercase tracking-widest hover:opacity-90 transition-opacity"
             >
-              {submitting ? '发布中...' : 'Post Need'}
+              登录后发布
             </button>
           </div>
-        </form>
+        )}
       </section>
 
       {/* Message List */}
@@ -192,6 +225,44 @@ export default function SquarePage() {
           </button>
         </footer>
       )}
+
+      {/* 登录提示弹窗 */}
+      {showLoginPrompt && (
+        <LoginPrompt onClose={() => setShowLoginPrompt(false)} />
+      )}
+    </div>
+  );
+}
+
+// 登录提示组件
+function LoginPrompt({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/50 backdrop-blur-sm">
+      <div className="bg-surface-container-lowest rounded-xl p-6 max-w-sm w-full shadow-xl">
+        <div className="flex items-center gap-3 mb-4 text-primary">
+          <AlertCircle size={24} />
+          <h3 className="text-lg font-bold">需要登录</h3>
+        </div>
+        <p className="text-on-surface-variant mb-6">
+          游客模式无法发表内容或点赞，请先登录。
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-lg border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-high transition-colors"
+          >
+            继续浏览
+          </button>
+          <button
+            onClick={() => router.push('/')}
+            className="flex-1 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary-dim transition-colors"
+          >
+            去登录
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

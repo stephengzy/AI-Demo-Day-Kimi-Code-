@@ -25,6 +25,8 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
     submitter2_name: '',
     submitter2_dept: '',
     background: '',
+    solution: '',
+    keywords: '',
   });
   const [mediaFiles, setMediaFiles] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -159,8 +161,33 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
     e.preventDefault();
     setError('');
 
-    if (!form.name || !form.summary || !form.track || !form.submitter1_name || !form.submitter1_dept || !form.background) {
-      setError('请填写所有必填项');
+    // 验证所有必填项
+    if (!form.track) {
+      setError('请选择赛道');
+      return;
+    }
+    if (!form.submitter1_name || !form.submitter1_dept) {
+      setError('请选择第一位提交人');
+      return;
+    }
+    if (!form.name) {
+      setError('请填写项目名称');
+      return;
+    }
+    if (!form.summary) {
+      setError('请填写一句话介绍');
+      return;
+    }
+    if (!form.background) {
+      setError('请填写 Why（为什么要做）');
+      return;
+    }
+    if (!form.solution) {
+      setError('请填写 How（怎么解决的）');
+      return;
+    }
+    if (!form.demo_link) {
+      setError('请填写演示链接');
       return;
     }
 
@@ -230,12 +257,13 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-on-surface/5 backdrop-blur-md">
       <div className="w-full max-w-5xl bg-surface-container-lowest rounded-xl shadow-[0_8px_32px_rgba(46,52,45,0.06)] overflow-hidden flex flex-row max-h-[90vh]">
         {/* Left Sidebar */}
-        <div className="w-1/3 bg-surface-container-low p-10 flex-col hidden md:flex">
-          <div className="mb-12">
-            <span className="text-secondary text-[11px] font-bold tracking-widest uppercase mb-4 block">Submission Portal</span>
-            <h2 className="font-headline text-3xl font-bold leading-tight text-on-surface mb-6">Join the Evolution.</h2>
-            <p className="text-on-surface-variant leading-relaxed text-sm">
-              Stop talking about the future. Start shipping it.
+        <div className="w-1/3 bg-surface-container-low px-10 pb-10 pt-[84px] flex-col hidden md:flex">
+          <div>
+            <h2 className="font-headline text-[42px] font-bold leading-tight text-on-surface mb-6">提交 Demo</h2>
+            <p className="text-sm text-on-surface-variant/60 leading-relaxed">
+              Join the Evolution.<br />
+              Stop talking about the future.<br />
+              Start shipping it.
             </p>
           </div>
           <div className="mt-auto space-y-6">
@@ -243,176 +271,35 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
               <Zap size={20} className="text-secondary mt-0.5" />
               <div>
                 <p className="text-sm font-bold text-on-surface">Optimizer</p>
-                <p className="text-xs text-on-surface-variant">Solo only. The efficiency warrior.</p>
+                <p className="text-xs text-on-surface-variant/70 leading-relaxed">重构工作流，用 AI 把自己武装成全能战士</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Hammer size={20} className="text-tertiary mt-0.5" />
               <div>
                 <p className="text-sm font-bold text-on-surface">Builder</p>
-                <p className="text-xs text-on-surface-variant">Duo or solo. The product visionary.</p>
+                <p className="text-xs text-on-surface-variant/70 leading-relaxed">设计小红书功能，或有小红书 DNA 的独立产品</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Right Form */}
-        <div className="flex-1 p-10 overflow-y-auto no-scrollbar">
-          <div className="flex justify-between items-start mb-10">
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-widest text-primary mb-1">Submit Your Demo</h3>
-              <div className="h-0.5 w-8 bg-secondary" />
-            </div>
+        <div className="flex-1 px-10 pb-10 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(var(--outline-rgb), 0.4) transparent' }}>
+          <div className="flex justify-end py-4">
             <button onClick={onClose} className="p-2 hover:bg-surface-container rounded-full transition-colors">
               <X size={20} />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-12">
-            {/* 1. Who's the mastermind? */}
-            <div className="space-y-6">
-              <div>
-                <label className="block font-headline text-lg font-bold text-on-surface mb-2">
-                  1. Who's the mastermind?
-                </label>
-                <p className="text-sm text-on-surface-variant mb-4">项目负责人（ solo 或 duo 的名字）</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* 提交人1 - 薯名下拉选择 */}
-                <div className="space-y-3 relative">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    薯名 *
-                  </label>
-                  <input
-                    ref={inputRef1}
-                    className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-0 py-3 text-base transition-colors placeholder:text-outline-variant/50"
-                    placeholder="输入薯名搜索..."
-                    value={query1}
-                    onChange={e => {
-                      setQuery1(e.target.value);
-                      setSelectedUser1(null);
-                      setForm(prev => ({ ...prev, submitter1_name: '', submitter1_dept: '' }));
-                      setShowDropdown1(true);
-                    }}
-                    onFocus={() => setShowDropdown1(true)}
-                  />
-                  {showDropdown1 && filteredUsers1.length > 0 && (
-                    <div
-                      ref={dropdownRef1}
-                      className="absolute top-full left-0 right-0 mt-1 bg-white border border-surface-container-high shadow-xl max-h-48 overflow-y-auto z-50 rounded-lg"
-                    >
-                      {filteredUsers1.map(u => (
-                        <button
-                          key={u.id}
-                          type="button"
-                          className="w-full px-4 py-3 text-left hover:bg-surface-container-low transition-colors flex justify-between items-center"
-                          onClick={() => selectUser1(u)}
-                        >
-                          <span className="text-base font-medium text-on-surface">{u.name}</span>
-                          <span className="text-xs text-outline chinese-text">{u.department}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {showDropdown1 && query1 && filteredUsers1.length === 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-surface-container-high shadow-xl z-50 rounded-lg px-4 py-3 text-sm text-outline">
-                      未找到匹配用户
-                    </div>
-                  )}
-                </div>
-
-                {/* 提交人1 - 部门自动填充（只读） */}
-                <div className="space-y-3">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    部门 *
-                  </label>
-                  <input
-                    className="w-full bg-surface-container-low/50 border-0 border-b-2 border-outline/30 px-0 py-3 text-base text-on-surface/70 cursor-not-allowed"
-                    placeholder="选择薯名后自动填充"
-                    value={form.submitter1_dept}
-                    readOnly
-                  />
-                </div>
-              </div>
-
-              {/* Member 2 for Builder */}
-              <div className={`space-y-6 ${isOptimizer ? 'opacity-30 pointer-events-none' : ''}`}>
-                <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                  伙伴 {isOptimizer ? '(Optimizer 无需填写)' : '(Builder 可选)'}
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* 提交人2 - 薯名下拉选择 */}
-                  <div className="relative">
-                    <input
-                      ref={inputRef2}
-                      className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-0 py-3 text-base transition-colors placeholder:text-outline-variant/50"
-                      placeholder="输入薯名搜索..."
-                      value={query2}
-                      onChange={e => {
-                        setQuery2(e.target.value);
-                        setSelectedUser2(null);
-                        setForm(prev => ({ ...prev, submitter2_name: '', submitter2_dept: '' }));
-                        setShowDropdown2(true);
-                      }}
-                      onFocus={() => !isOptimizer && setShowDropdown2(true)}
-                      disabled={isOptimizer}
-                    />
-                    {showDropdown2 && filteredUsers2.length > 0 && (
-                      <div
-                        ref={dropdownRef2}
-                        className="absolute top-full left-0 right-0 mt-1 bg-white border border-surface-container-high shadow-xl max-h-48 overflow-y-auto z-50 rounded-lg"
-                      >
-                        {filteredUsers2.map(u => (
-                          <button
-                            key={u.id}
-                            type="button"
-                            className="w-full px-4 py-3 text-left hover:bg-surface-container-low transition-colors flex justify-between items-center"
-                            onClick={() => selectUser2(u)}
-                          >
-                            <span className="text-base font-medium text-on-surface">{u.name}</span>
-                            <span className="text-xs text-outline chinese-text">{u.department}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 提交人2 - 部门自动填充（只读） */}
-                  <input
-                    className="w-full bg-surface-container-low/50 border-0 border-b-2 border-outline/30 px-0 py-3 text-base text-on-surface/70 cursor-not-allowed"
-                    placeholder="选择薯名后自动填充"
-                    value={form.submitter2_dept}
-                    readOnly
-                    disabled={isOptimizer}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Give it a Codename */}
+            {/* 1. Choose Your Track - 先选赛道 */}
             <div className="space-y-4">
               <div>
-                <label className="block font-headline text-lg font-bold text-on-surface mb-2">
-                  2. Give it a Codename
+                <label className="block font-headline text-xl font-bold text-on-surface mb-1">
+                  1. Choose Your Track
                 </label>
-                <p className="text-sm text-on-surface-variant">取个响亮的名字（要够 punchy）</p>
-              </div>
-              <input
-                className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-0 py-3 text-xl font-headline font-bold transition-colors placeholder:text-outline-variant/50"
-                placeholder="Project Name / 项目名称 *"
-                value={form.name}
-                onChange={e => updateField('name', e.target.value)}
-              />
-            </div>
-
-            {/* 3. Choose Your Fighter */}
-            <div className="space-y-4">
-              <div>
-                <label className="block font-headline text-lg font-bold text-on-surface mb-2">
-                  3. Choose Your Fighter
-                </label>
-                <p className="text-sm text-on-surface-variant">选择你的赛道</p>
+                <p className="text-sm text-on-surface-variant/60">选择你的赛道（每人不限制赛道和 Demo 提交次数）</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className={`relative flex items-start gap-4 p-5 rounded-lg border-2 cursor-pointer transition-all ${
@@ -433,7 +320,7 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
                       <span className="text-lg">⚡️</span>
                       <span className="font-bold text-on-surface">Optimizer</span>
                     </div>
-                    <p className="text-xs text-on-surface-variant">The Solo Efficiency Warrior / 效率战士（单人）</p>
+                    <p className="text-xs text-on-surface-variant/80 leading-relaxed">重构工作流，用 AI 把自己武装成全能战士（包括但不限于工作提效的 Skills、Workflow、产品等）</p>
                   </div>
                 </label>
                 <label className={`relative flex items-start gap-4 p-5 rounded-lg border-2 cursor-pointer transition-all ${
@@ -454,55 +341,219 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
                       <span className="text-lg">🛠️</span>
                       <span className="font-bold text-on-surface">Builder</span>
                     </div>
-                    <p className="text-xs text-on-surface-variant">The Product Visionary / 产品 visionary（可组队）</p>
+                    <p className="text-xs text-on-surface-variant/80 leading-relaxed">设计一个小红书功能，或是有小红书 DNA 的独立产品</p>
                   </div>
                 </label>
               </div>
             </div>
 
-            {/* 4. The "Why" */}
-            <div className="space-y-4">
+            {/* 2. Who's the mastermind? - 根据赛道显示1或2个 */}
+            <div className="space-y-6">
               <div>
-                <label className="block font-headline text-lg font-bold text-on-surface mb-2">
-                  4. The "Why"
+                <label className="block font-headline text-xl font-bold text-on-surface mb-1">
+                  2. Who's the Mastermind
                 </label>
-                <p className="text-sm text-on-surface-variant">解决什么问题？背后的故事是什么？</p>
+                <p className="text-sm text-on-surface-variant/60 mb-4">
+                  {!form.track ? '请先选择赛道' : isOptimizer ? 'Optimizer 赛道：仅限单人' : 'Builder 赛道：可单人或组队'}
+                </p>
               </div>
-              <textarea
-                className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-0 py-3 text-base transition-colors resize-none"
-                placeholder="Why did you make it? What problem are you killing? / 为什么要做这个？解决什么痛点？ *"
-                rows={5}
-                value={form.background}
-                onChange={e => updateField('background', e.target.value)}
+              
+              {/* Member 1 */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-[0.12em] text-on-surface-variant">
+                  薯名 1 *
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="relative">
+                    <input
+                      ref={inputRef1}
+                      className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-1 py-3 text-base transition-colors placeholder:text-outline-variant/50 disabled:opacity-30"
+                      placeholder="输入薯名搜索..."
+                      value={query1}
+                      disabled={!form.track}
+                      onChange={e => {
+                        setQuery1(e.target.value);
+                        setSelectedUser1(null);
+                        setForm(prev => ({ ...prev, submitter1_name: '', submitter1_dept: '' }));
+                        setShowDropdown1(true);
+                      }}
+                      onFocus={() => form.track && setShowDropdown1(true)}
+                    />
+                    {showDropdown1 && filteredUsers1.length > 0 && (
+                      <div
+                        ref={dropdownRef1}
+                        className="absolute top-full left-0 right-0 mt-1 bg-white border border-surface-container-high shadow-xl max-h-48 overflow-y-auto z-50 rounded-lg"
+                      >
+                        {filteredUsers1.map(u => (
+                          <button
+                            key={u.id}
+                            type="button"
+                            className="w-full px-4 py-3 text-left hover:bg-surface-container-low transition-colors flex justify-between items-center"
+                            onClick={() => selectUser1(u)}
+                          >
+                            <span className="text-base font-medium text-on-surface">{u.name}</span>
+                            <span className="text-xs text-outline">{u.department}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {showDropdown1 && query1 && filteredUsers1.length === 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-surface-container-high shadow-xl z-50 rounded-lg px-4 py-3 text-sm text-outline">
+                        未找到匹配用户
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    className="w-full bg-surface-container-low/50 border-0 border-b-2 border-outline/30 px-1 py-3 text-base text-on-surface/70 cursor-not-allowed"
+                    placeholder="选择薯名后自动填充"
+                    value={form.submitter1_dept}
+                    readOnly
+                  />
+                </div>
+              </div>
+
+              {/* Member 2 - 仅 Builder 显示 */}
+              {form.track === 'builder' && (
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold uppercase tracking-[0.12em] text-on-surface-variant">
+                    薯名 2（可选）
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="relative">
+                      <input
+                        ref={inputRef2}
+                        className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-1 py-3 text-base transition-colors placeholder:text-outline-variant/50"
+                        placeholder="输入薯名搜索（可选）..."
+                        value={query2}
+                        onChange={e => {
+                          setQuery2(e.target.value);
+                          setSelectedUser2(null);
+                          setForm(prev => ({ ...prev, submitter2_name: '', submitter2_dept: '' }));
+                          setShowDropdown2(true);
+                        }}
+                        onFocus={() => setShowDropdown2(true)}
+                      />
+                      {showDropdown2 && filteredUsers2.length > 0 && (
+                        <div
+                          ref={dropdownRef2}
+                          className="absolute top-full left-0 right-0 mt-1 bg-white border border-surface-container-high shadow-xl max-h-48 overflow-y-auto z-50 rounded-lg"
+                        >
+                          {filteredUsers2.map(u => (
+                            <button
+                              key={u.id}
+                              type="button"
+                              className="w-full px-4 py-3 text-left hover:bg-surface-container-low transition-colors flex justify-between items-center"
+                              onClick={() => selectUser2(u)}
+                            >
+                              <span className="text-base font-medium text-on-surface">{u.name}</span>
+                              <span className="text-xs text-outline">{u.department}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      className="w-full bg-surface-container-low/50 border-0 border-b-2 border-outline/30 px-1 py-3 text-base text-on-surface/70 cursor-not-allowed"
+                      placeholder="选择薯名后自动填充"
+                      value={form.submitter2_dept}
+                      readOnly
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Give it a Codename */}
+            <div className="space-y-3">
+              <div>
+                <label className="block font-headline text-xl font-bold text-on-surface mb-1">
+                  3. Give It a Codename
+                </label>
+                <p className="text-sm text-on-surface-variant/60">取个响亮的名字</p>
+              </div>
+              <input
+                className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-1 py-3 text-base transition-colors placeholder:text-outline-variant/50"
+                placeholder="Project Name / 项目名称"
+                value={form.name}
+                onChange={e => updateField('name', e.target.value)}
               />
             </div>
 
-            {/* 5. The One-Line Pitch */}
-            <div className="space-y-4">
+            {/* 4. The Story */}
+            <div className="space-y-6">
               <div>
-                <label className="block font-headline text-lg font-bold text-on-surface mb-2">
-                  5. The One-Line Pitch
+                <label className="block font-headline text-xl font-bold text-on-surface mb-1">
+                  4. The Story
                 </label>
-                <p className="text-sm text-on-surface-variant">电梯演讲，一句话打动 VC</p>
+                <p className="text-sm text-on-surface-variant/60">讲讲背后的故事</p>
               </div>
-              <input
-                className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-0 py-3 text-base transition-colors placeholder:text-outline-variant/50"
-                placeholder="One sentence only. No jargon, just impact. / 一句话概括，不要术语，只要冲击力 *"
-                value={form.summary}
-                onChange={e => updateField('summary', e.target.value)}
-              />
+              
+              {/* One-Line Pitch - 移到 Story 里 */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-[0.12em] text-primary">
+                  One-Line Pitch / 一句话介绍 *
+                </label>
+                <input
+                  className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-1 py-3 text-base transition-colors placeholder:text-outline-variant/50"
+                  placeholder="一句话概括你的项目"
+                  value={form.summary}
+                  onChange={e => updateField('summary', e.target.value)}
+                />
+              </div>
+              
+              {/* Why */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-[0.12em] text-secondary">
+                  Why / 为什么要做？ *
+                </label>
+                <textarea
+                  className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-secondary focus:ring-0 px-1 py-3 text-base leading-relaxed transition-colors resize-none placeholder:text-outline-variant/50"
+                  placeholder="解决什么问题？背后的故事是什么？发现什么痛点？"
+                  rows={4}
+                  value={form.background}
+                  onChange={e => updateField('background', e.target.value)}
+                />
+              </div>
+              
+              {/* How */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-[0.12em] text-tertiary">
+                  How / 怎么解决的？ *
+                </label>
+                <textarea
+                  className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-tertiary focus:ring-0 px-1 py-3 text-base leading-relaxed transition-colors resize-none placeholder:text-outline-variant/50"
+                  placeholder="具体的解决方案是什么？用什么方法/技术实现的？"
+                  rows={4}
+                  value={form.solution}
+                  onChange={e => updateField('solution', e.target.value)}
+                />
+              </div>
+              
+              {/* Keywords */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-[0.12em] text-primary">
+                  关键词（选填）
+                </label>
+                <input
+                  className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-1 py-3 text-base transition-colors placeholder:text-outline-variant/50"
+                  placeholder="例如：PMO、数据分析、社区、电商等"
+                  value={form.keywords}
+                  onChange={e => updateField('keywords', e.target.value)}
+                />
+                <p className="text-xs text-on-surface-variant/50">填写你的 Demo 涉及的技能、工具或领域关键词</p>
+              </div>
             </div>
 
-            {/* 6. Show Us the Goods */}
+            {/* 5. Show Us the Goods */}
             <div className="space-y-4">
               <div>
-                <label className="block font-headline text-lg font-bold text-on-surface mb-2">
-                  6. Show Us the Goods
+                <label className="block font-headline text-xl font-bold text-on-surface mb-1">
+                  5. Show Us the Goods
                 </label>
-                <p className="text-sm text-on-surface-variant">展示你的作品（Demo、文档、GitHub）</p>
+                <p className="text-sm text-on-surface-variant/60">展示你的作品（Demo、文档、GitHub）</p>
               </div>
               <input
-                className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-0 py-3 text-base transition-colors placeholder:text-outline-variant/50"
+                className="w-full bg-surface-container-low border-0 border-b-2 border-outline focus:border-primary focus:ring-0 px-1 py-3 text-base transition-colors placeholder:text-outline-variant/50"
                 placeholder="Link to demo / doc / GitHub / 演示链接"
                 type="url"
                 value={form.demo_link}
@@ -510,10 +561,10 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
               />
             </div>
 
-            {/* Media Upload */}
+            {/* Media Upload - 可选 */}
             <div className="pt-4">
-              <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-4">
-                Media / 媒体附件（可选）
+              <label className="block text-sm text-on-surface-variant/60 mb-3">
+                截图/录屏等（选填）
               </label>
               <input
                 ref={fileInputRef}
@@ -554,16 +605,16 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-8 py-3 text-xs font-bold uppercase tracking-widest text-primary hover:bg-surface-container-high transition-colors rounded"
+                  className="px-8 py-3 text-sm font-bold uppercase tracking-widest text-primary hover:bg-surface-container-high transition-colors rounded"
                 >
-                  Cancel
+                  取消
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-10 py-3 text-xs font-bold uppercase tracking-widest bg-primary text-on-primary hover:bg-primary-dim transition-all shadow-lg hover:shadow-xl rounded disabled:opacity-50"
+                  className="px-10 py-3 text-sm font-bold uppercase tracking-widest bg-primary text-on-primary hover:bg-primary-dim transition-all shadow-lg hover:shadow-xl rounded disabled:opacity-50"
                 >
-                  {submitting ? 'Submitting...' : 'Submit'}
+                  {submitting ? '提交中...' : '提交'}
                 </button>
               </div>
             </div>

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { pinyin } from 'pinyin-pro';
 import { LanguageProvider, useLanguage } from '@/components/LanguageProvider';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
+// import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 interface UserOption {
   id: number;
@@ -107,7 +107,7 @@ function EntryPortalContent() {
             <h1 className="text-4xl font-headline font-bold tracking-tight text-on-surface">{t.login.title}</h1>
             <p className="text-base text-on-surface-variant mt-1">{t.login.subtitle}</p>
           </div>
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
         </div>
       </header>
 
@@ -186,7 +186,7 @@ function EntryPortalContent() {
             {error && <p className="text-error text-sm">{error}</p>}
 
             {/* Submit Button */}
-            <div className="pt-4">
+            <div className="pt-4 space-y-3">
               <button
                 type="submit"
                 disabled={loading || !selectedUser}
@@ -195,6 +195,19 @@ function EntryPortalContent() {
                 <span className="text-sm font-semibold tracking-wider">
                   {loading ? t.login.submitting : t.login.submit}
                 </span>
+              </button>
+              
+              {/* 游客入口 */}
+              <button
+                type="button"
+                onClick={async () => {
+                  // 调用 logout API 清除 httpOnly cookie
+                  await fetch('/api/auth/logout', { method: 'POST' });
+                  router.push('/guide');
+                }}
+                className="w-full py-3 px-8 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors text-sm"
+              >
+                {t.login.guestEntry}
               </button>
             </div>
           </form>
