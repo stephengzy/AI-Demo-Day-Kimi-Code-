@@ -624,23 +624,25 @@ export default function LeaderboardPage() {
           <div className="flex gap-1 p-1 bg-surface-container-low rounded-xl">
             <button
               onClick={() => setActiveTab('optimizer')}
-              className={`px-5 py-2.5 rounded-lg font-headline text-base font-bold transition-all ${
+              className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-headline text-base font-bold transition-all ${
                 activeTab === 'optimizer'
-                  ? 'bg-primary text-on-primary shadow-sm'
+                  ? 'bg-secondary text-on-secondary shadow-sm'
                   : 'text-on-surface hover:text-on-surface hover:bg-surface-container-high'
               }`}
             >
-              ⚡ Optimizer
+              <span>⚡</span>
+              <span>Optimizer</span>
             </button>
             <button
               onClick={() => setActiveTab('builder')}
-              className={`px-5 py-2.5 rounded-lg font-headline text-base font-bold transition-all ${
+              className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-headline text-base font-bold transition-all ${
                 activeTab === 'builder'
-                  ? 'bg-primary text-on-primary shadow-sm'
+                  ? 'bg-tertiary text-on-tertiary shadow-sm'
                   : 'text-on-surface hover:text-on-surface hover:bg-surface-container-high'
               }`}
             >
-              🛠️ Builder
+              <span>🛠️</span>
+              <span>Builder</span>
             </button>
           </div>
         </div>
