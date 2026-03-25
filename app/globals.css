@@ -196,3 +196,123 @@ h1, h2, h3, h4, h5, h6 {
 p {
   line-height: 1.75;
 }
+
+/* Markdown 内容样式 */
+.markdown-content {
+  line-height: 1.75;
+  color: #2e342d;
+}
+
+.markdown-content p {
+  margin-bottom: 0.75em;
+}
+
+.markdown-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* 无序列表 */
+.markdown-content ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+  margin-bottom: 0.75em;
+}
+
+.markdown-content ul li {
+  margin-bottom: 0.25em;
+}
+
+/* 有序列表 */
+.markdown-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin-bottom: 0.75em;
+}
+
+.markdown-content ol li {
+  margin-bottom: 0.25em;
+}
+
+/* 嵌套列表 */
+.markdown-content ul ul,
+.markdown-content ol ol,
+.markdown-content ul ol,
+.markdown-content ol ul {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+/* 标题 */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  font-weight: 600;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  line-height: 1.4;
+}
+
+.markdown-content h1 { font-size: 1.5em; }
+.markdown-content h2 { font-size: 1.25em; }
+.markdown-content h3 { font-size: 1.125em; }
+.markdown-content h4 { font-size: 1em; }
+
+/* 粗体和斜体 */
+.markdown-content strong {
+  font-weight: 600;
+}
+
+.markdown-content em {
+  font-style: italic;
+}
+
+/* 链接 */
+.markdown-content a {
+  color: #585d7e;
+  text-decoration: underline;
+}
+
+.markdown-content a:hover {
+  opacity: 0.8;
+}
+
+/* 代码 */
+.markdown-content code {
+  background: rgba(118, 124, 116, 0.1);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+.markdown-content pre {
+  background: rgba(118, 124, 116, 0.1);
+  padding: 1em;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 0.75em;
+}
+
+.markdown-content pre code {
+  background: none;
+  padding: 0;
+}
+
+/* 引用 */
+.markdown-content blockquote {
+  border-left: 3px solid #767c74;
+  padding-left: 1em;
+  margin-left: 0;
+  margin-bottom: 0.75em;
+  color: #5a6159;
+}
+
+/* 分隔线 */
+.markdown-content hr {
+  border: none;
+  border-top: 1px solid #aeb4aa;
+  margin: 1em 0;
+}

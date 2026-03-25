@@ -576,7 +576,7 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
                 {whyPreview ? (
                   <div className="w-full bg-surface-container-low/50 border border-outline/20 rounded-lg px-4 py-3 min-h-[120px] max-h-[300px] overflow-y-auto">
                     {form.background ? (
-                      <div className="prose prose-sm max-w-none">
+                      <div className="markdown-content">
                         <ReactMarkdown>{form.background}</ReactMarkdown>
                       </div>
                     ) : (
@@ -612,7 +612,7 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
                 {howPreview ? (
                   <div className="w-full bg-surface-container-low/50 border border-outline/20 rounded-lg px-4 py-3 min-h-[120px] max-h-[300px] overflow-y-auto">
                     {form.solution ? (
-                      <div className="prose prose-sm max-w-none">
+                      <div className="markdown-content">
                         <ReactMarkdown>{form.solution}</ReactMarkdown>
                       </div>
                     ) : (
