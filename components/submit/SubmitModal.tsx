@@ -700,6 +700,9 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
                 value={form.demo_link}
                 onChange={e => updateField('demo_link', e.target.value)}
               />
+              <p className="text-xs text-on-surface-variant/50 mt-2">
+                Redoc文档请提前开放权限
+              </p>
             </div>
 
             {/* Media Upload - 可选 */}
