@@ -94,21 +94,21 @@ export default function LeaderboardPage() {
 
   async function fetchAllData() {
     try {
-      const [optimizerRes, builderRes] = await Promise.all([
-        fetch('/api/leaderboard?vote_type=best_optimizer'),
-        fetch('/api/leaderboard?vote_type=best_builder'),
-      ]);
-      const optimizerJson = await optimizerRes.json();
-      const builderJson = await builderRes.json();
-      setOptimizerData(optimizerJson.leaderboard || []);
-      setBuilderData(builderJson.leaderboard || []);
-
+      // 并行获取所有 leaderboard 数据（5个请求同时发起）
+      const awardIds = ['best_optimizer', 'best_builder', ...Object.keys(SPECIAL_AWARDS)];
+      const responses = await Promise.all(
+        awardIds.map(id => fetch(`/api/leaderboard?vote_type=${id}`))
+      );
+      const results = await Promise.all(responses.map(r => r.json()));
+      
+      // 分配数据
+      setOptimizerData(results[0].leaderboard || []);
+      setBuilderData(results[1].leaderboard || []);
+      
       const specialResults: Record<string, LeaderboardItem[]> = {};
-      for (const awardId of Object.keys(SPECIAL_AWARDS)) {
-        const res = await fetch(`/api/leaderboard?vote_type=${awardId}`);
-        const data = await res.json();
-        specialResults[awardId] = data.leaderboard || [];
-      }
+      Object.keys(SPECIAL_AWARDS).forEach((awardId, index) => {
+        specialResults[awardId] = results[index + 2].leaderboard || [];
+      });
       setSpecialData(specialResults);
     } catch (error) {
       console.error('Failed to fetch leaderboard:', error);

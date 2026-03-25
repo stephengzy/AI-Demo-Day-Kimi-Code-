@@ -115,8 +115,11 @@ export default function MyDemosPage() {
   }
 
   useEffect(() => {
-    checkAuth();
-    fetchUsers();
+    // 并行执行认证检查和用户列表获取
+    Promise.all([
+      checkAuth(),
+      fetchUsers()
+    ]);
   }, []);
 
   // 点击外部关闭下拉框

@@ -30,13 +30,11 @@ export default function SquarePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
 
   useEffect(() => {
-    // 获取用户信息
-    fetch('/api/auth/me')
-      .then(r => r.json())
-      .then(d => setUser(d.user))
-      .catch(() => {});
-    
-    fetchMessages();
+    // 并行获取用户信息和消息列表
+    Promise.all([
+      fetch('/api/auth/me').then(r => r.json()).then(d => setUser(d.user)).catch(() => {}),
+      fetchMessages()
+    ]);
   }, []);
 
   async function fetchMessages() {
