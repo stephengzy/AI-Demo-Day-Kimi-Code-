@@ -30,7 +30,6 @@ interface Demo {
 
 export default function GalleryPage() {
   const searchParams = useSearchParams();
-  const demoIdFromUrl = searchParams.get('demo');
   
   const [demos, setDemos] = useState<Demo[]>([]);
   const [selectedDemo, setSelectedDemo] = useState<Demo | null>(null);
@@ -43,10 +42,13 @@ export default function GalleryPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
+  const [demoIdFromUrl, setDemoIdFromUrl] = useState<string | null>(null);
   
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    // 在客户端安全地读取 URL 参数
+    setDemoIdFromUrl(searchParams.get('demo'));
+  }, [searchParams]);
 
   // 搜索防抖 - 300ms 延迟
   useEffect(() => {
