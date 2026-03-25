@@ -139,7 +139,7 @@ export default function GuidePage() {
 
       {/* ── 当天议程 ── */}
       <section className="mb-12">
-        <SectionTitle>当天议程</SectionTitle>
+        <SectionTitle>当天日程</SectionTitle>
 
         {/* 地点 + 规则 + 奖项 信息条 */}
         <div className="rounded-xl border border-outline-variant/15 bg-surface-container-low divide-x divide-outline-variant/15 flex mb-4 overflow-hidden">
