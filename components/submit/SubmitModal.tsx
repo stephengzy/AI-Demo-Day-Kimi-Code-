@@ -339,22 +339,7 @@ export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps)
               Start Shipping It.
             </p>
           </div>
-          <div className="mt-auto space-y-6">
-            <div className="flex items-start gap-3">
-              <Zap size={20} className="text-secondary mt-0.5" />
-              <div>
-                <p className="text-sm font-bold text-on-surface">Optimizer</p>
-                <p className="text-xs text-on-surface-variant/70 leading-relaxed">重构工作流，用 AI 把自己武装成全能战士</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <Hammer size={20} className="text-tertiary mt-0.5" />
-              <div>
-                <p className="text-sm font-bold text-on-surface">Builder</p>
-                <p className="text-xs text-on-surface-variant/70 leading-relaxed">设计小红书功能，或有小红书 DNA 的独立产品</p>
-              </div>
-            </div>
-          </div>
+
         </div>
 
         {/* Right Form */}
