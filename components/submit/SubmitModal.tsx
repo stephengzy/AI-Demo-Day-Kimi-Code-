@@ -355,46 +355,68 @@ export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps)
                 <p className="text-sm text-on-surface-variant/60">选择你的赛道（每人不限制赛道和 Demo 提交次数）</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className={`relative flex items-start gap-4 p-5 rounded-lg border-2 cursor-pointer transition-all ${
+                <label className={`relative flex flex-col gap-3 p-5 rounded-lg border-2 cursor-pointer transition-all ${
                   form.track === 'optimizer' 
                     ? 'border-secondary bg-secondary-container/30' 
                     : 'border-outline-variant/30 hover:border-outline'
                 }`}>
-                  <input
-                    type="radio"
-                    name="track"
-                    value="optimizer"
-                    checked={form.track === 'optimizer'}
-                    onChange={e => updateField('track', e.target.value)}
-                    className="mt-1"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-lg">⚡️</span>
-                      <span className="font-bold text-on-surface">Optimizer</span>
+                  <div className="flex items-start gap-4">
+                    <input
+                      type="radio"
+                      name="track"
+                      value="optimizer"
+                      checked={form.track === 'optimizer'}
+                      onChange={e => updateField('track', e.target.value)}
+                      className="mt-1"
+                    />
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-lg">⚡️</span>
+                        <span className="font-bold text-on-surface">Optimizer</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-on-surface-variant/80 leading-relaxed">重构工作流，用 AI 把自己武装成全能战士（包括但不限于工作提效的 Skills、Workflow、产品等）</p>
+                  </div>
+                  <div className="pl-7 space-y-2">
+                    <div>
+                      <span className="text-xs font-bold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded">原则</span>
+                      <p className="text-sm text-on-surface-variant mt-1.5 leading-relaxed">重构工作流，极致提高效率，用 AI 把自己武装成全能战士</p>
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded">实现形式</span>
+                      <p className="text-sm text-on-surface-variant mt-1.5">AI Skills、AI Workflow 等</p>
+                    </div>
                   </div>
                 </label>
-                <label className={`relative flex items-start gap-4 p-5 rounded-lg border-2 cursor-pointer transition-all ${
+                <label className={`relative flex flex-col gap-3 p-5 rounded-lg border-2 cursor-pointer transition-all ${
                   form.track === 'builder' 
                     ? 'border-tertiary bg-tertiary-container/30' 
                     : 'border-outline-variant/30 hover:border-outline'
                 }`}>
-                  <input
-                    type="radio"
-                    name="track"
-                    value="builder"
-                    checked={form.track === 'builder'}
-                    onChange={e => updateField('track', e.target.value)}
-                    className="mt-1"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-lg">🛠️</span>
-                      <span className="font-bold text-on-surface">Builder</span>
+                  <div className="flex items-start gap-4">
+                    <input
+                      type="radio"
+                      name="track"
+                      value="builder"
+                      checked={form.track === 'builder'}
+                      onChange={e => updateField('track', e.target.value)}
+                      className="mt-1"
+                    />
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-lg">🛠️</span>
+                        <span className="font-bold text-on-surface">Builder</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-on-surface-variant/80 leading-relaxed">设计一个小红书功能，或是有小红书 DNA 的独立产品</p>
+                  </div>
+                  <div className="pl-7 space-y-2">
+                    <div>
+                      <span className="text-xs font-bold text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded">原则</span>
+                      <p className="text-sm text-on-surface-variant mt-1.5 leading-relaxed">设计一个小红书功能，或是有小红书 DNA 的有趣独立产品</p>
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded">实现形式</span>
+                      <p className="text-sm text-on-surface-variant mt-1.5">产品 Demo/概念，或可以落地的产品</p>
+                    </div>
                   </div>
                 </label>
               </div>

@@ -2,8 +2,12 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { Search, ExternalLink, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+
+// 动态导入 Lightbox 组件，禁用服务端渲染
+const Lightbox = dynamic(() => Promise.resolve(LightboxComponent), { ssr: false });
 
 interface Demo {
   id: number;
@@ -416,7 +420,7 @@ export default function GalleryPage() {
       </section>
       
       {/* Lightbox 查看器 */}
-      {lightboxOpen && mediaUrls.length > 0 && typeof window !== 'undefined' && (
+      {lightboxOpen && mediaUrls.length > 0 && (
         <Lightbox 
           urls={mediaUrls}
           currentIndex={lightboxIndex}
@@ -430,7 +434,7 @@ export default function GalleryPage() {
 }
 
 // Lightbox 组件
-function Lightbox({ 
+function LightboxComponent({ 
   urls, 
   currentIndex, 
   onClose, 
