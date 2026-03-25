@@ -298,7 +298,12 @@ export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps)
 
   if (success) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-on-surface/5 backdrop-blur-md">
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-on-surface/5 backdrop-blur-md"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
         <div className="bg-surface-container-lowest rounded-xl shadow-lg p-16 text-center">
           <CheckCircle size={48} className="text-secondary mx-auto mb-4" />
           <h2 className="font-headline text-3xl mb-2">Submitted!</h2>
@@ -309,7 +314,12 @@ export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-on-surface/5 backdrop-blur-md">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-on-surface/5 backdrop-blur-md"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="w-full max-w-5xl bg-surface-container-lowest rounded-xl shadow-[0_8px_32px_rgba(46,52,45,0.06)] overflow-hidden flex flex-row max-h-[90vh] relative">
         {/* 常驻关闭按钮 - 右上角 */}
         <button 
