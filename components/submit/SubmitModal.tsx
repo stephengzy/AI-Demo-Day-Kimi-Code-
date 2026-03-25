@@ -334,12 +334,15 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
         </div>
 
         {/* Right Form */}
-        <div className="flex-1 px-10 pb-10 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(var(--outline-rgb), 0.4) transparent' }}>
-          <div className="flex justify-end py-4">
-            <button onClick={onClose} className="p-2 hover:bg-surface-container rounded-full transition-colors">
-              <X size={20} />
-            </button>
-          </div>
+        <div className="flex-1 px-10 pb-10 overflow-y-auto relative" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(var(--outline-rgb), 0.4) transparent' }}>
+          {/* 常驻关闭按钮 */}
+          <button 
+            onClick={onClose} 
+            className="fixed top-10 right-10 z-50 p-2 bg-surface-container-lowest/80 hover:bg-surface-container rounded-full transition-colors shadow-sm"
+            style={{ position: 'sticky', float: 'right', marginTop: '-0.5rem', marginRight: '-0.5rem' }}
+          >
+            <X size={20} />
+          </button>
 
           <form onSubmit={handleSubmit} className="space-y-12">
             {/* 1. Choose Your Track - 先选赛道 */}
