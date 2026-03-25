@@ -42,6 +42,11 @@ export default function GalleryPage() {
   // Lightbox 状态
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [isClient, setIsClient] = useState(false);
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // 搜索防抖 - 300ms 延迟
   useEffect(() => {
@@ -419,8 +424,8 @@ export default function GalleryPage() {
         </div>
       </section>
       
-      {/* Lightbox 查看器 */}
-      {lightboxOpen && mediaUrls.length > 0 && (
+      {/* Lightbox 查看器 - 只在客户端渲染 */}
+      {isClient && lightboxOpen && mediaUrls.length > 0 && (
         <Lightbox 
           urls={mediaUrls}
           currentIndex={lightboxIndex}
