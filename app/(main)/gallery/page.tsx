@@ -339,7 +339,7 @@ export default function GalleryPage() {
                       {/* Keywords */}
                       {selectedDemo.keywords && (
                         <div>
-                          <p className="text-xs uppercase tracking-widest text-primary font-bold mb-3">关键词 / Skills</p>
+                          <p className="text-xs uppercase tracking-widest text-primary font-bold mb-3">KEY WORDS / 关键词</p>
                           <div className="flex flex-wrap gap-2">
                             {selectedDemo.keywords.split(/[、,，]/).map((kw, i) => (
                               <span key={i} className="text-xs px-2.5 py-1 bg-primary/10 text-primary rounded-full">

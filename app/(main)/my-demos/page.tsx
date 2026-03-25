@@ -735,7 +735,7 @@ export default function MyDemosPage() {
             {/* Keywords - Tag Input */}
             <div className="space-y-2">
               <label className="block text-xs font-bold uppercase tracking-[0.12em] text-primary">
-                关键词（选填，最多10个）
+                KEY WORDS / 关键词（选填，最多10个）
               </label>
               
               {keywordTags.length > 0 && (
