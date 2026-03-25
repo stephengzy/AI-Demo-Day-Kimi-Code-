@@ -72,7 +72,7 @@ export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }
           className="w-full flex items-center justify-center gap-2 bg-[#1A1A1A] text-white py-3 px-4 rounded-lg hover:opacity-90 transition-all shadow-sm group active:scale-95"
         >
           <Plus size={16} strokeWidth={2.5} />
-          <span className="font-headline italic tracking-tight text-base">Submit Proposal</span>
+          <span className="font-headline tracking-tight text-base">Submit Demo</span>
         </button>
       </div>
 
