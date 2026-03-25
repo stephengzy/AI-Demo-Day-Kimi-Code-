@@ -304,7 +304,15 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-on-surface/5 backdrop-blur-md">
-      <div className="w-full max-w-5xl bg-surface-container-lowest rounded-xl shadow-[0_8px_32px_rgba(46,52,45,0.06)] overflow-hidden flex flex-row max-h-[90vh]">
+      <div className="w-full max-w-5xl bg-surface-container-lowest rounded-xl shadow-[0_8px_32px_rgba(46,52,45,0.06)] overflow-hidden flex flex-row max-h-[90vh] relative">
+        {/* 常驻关闭按钮 - 右上角 */}
+        <button 
+          onClick={onClose} 
+          className="absolute top-4 right-4 z-50 p-2 bg-surface-container-lowest hover:bg-surface-container rounded-full transition-colors shadow-sm"
+        >
+          <X size={20} />
+        </button>
+
         {/* Left Sidebar */}
         <div className="w-1/3 bg-surface-container-low px-10 pb-10 pt-[84px] flex-col hidden md:flex">
           <div>
@@ -334,15 +342,7 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
         </div>
 
         {/* Right Form */}
-        <div className="flex-1 px-10 pb-10 overflow-y-auto relative" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(var(--outline-rgb), 0.4) transparent' }}>
-          {/* 常驻关闭按钮 */}
-          <button 
-            onClick={onClose} 
-            className="fixed top-10 right-10 z-50 p-2 bg-surface-container-lowest/80 hover:bg-surface-container rounded-full transition-colors shadow-sm"
-            style={{ position: 'sticky', float: 'right', marginTop: '-0.5rem', marginRight: '-0.5rem' }}
-          >
-            <X size={20} />
-          </button>
+        <div className="flex-1 px-10 pb-10 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(var(--outline-rgb), 0.4) transparent' }}>
 
           <form onSubmit={handleSubmit} className="space-y-12">
             {/* 1. Choose Your Track - 先选赛道 */}
