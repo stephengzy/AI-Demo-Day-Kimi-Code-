@@ -540,7 +540,6 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
                   value={form.keywords}
                   onChange={e => updateField('keywords', e.target.value)}
                 />
-                <p className="text-xs text-on-surface-variant/50">填写你的 Demo 涉及的技能、工具或领域关键词</p>
               </div>
             </div>
 
