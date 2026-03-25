@@ -342,7 +342,7 @@ export default function SubmitModal({ onClose }: SubmitModalProps) {
         </div>
 
         {/* Right Form */}
-        <div className="flex-1 px-10 pb-10 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(var(--outline-rgb), 0.4) transparent' }}>
+        <div className="flex-1 px-10 pb-10 pt-[84px] overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(var(--outline-rgb), 0.4) transparent' }}>
 
           <form onSubmit={handleSubmit} className="space-y-12">
             {/* 1. Choose Your Track - 先选赛道 */}
