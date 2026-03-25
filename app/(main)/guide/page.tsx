@@ -21,9 +21,6 @@ export default function GuidePage() {
 
       {/* ── Header（全宽） ──────────────────────── */}
       <header className="mb-10 pb-8 border-b border-outline-variant/20">
-        <p className="text-xs font-bold tracking-widest uppercase text-secondary mb-3">
-          第一届 · 小红书战略 × 用研 × 投资
-        </p>
         <h1 className="font-headline text-4xl font-bold text-on-surface leading-tight mb-2">
           Evolution: AI Demo Day
         </h1>
