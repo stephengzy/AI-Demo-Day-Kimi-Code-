@@ -68,3 +68,47 @@ export type VoteTypeId = keyof typeof VOTE_TYPES;
 
 export const PRO_JUDGE_WEIGHT = 2;
 export const NORMAL_WEIGHT = 1;
+
+// ── 海选投票模块 ──────────────────────────────────────────────────────────────
+
+export interface PrelimConfig {
+  enabled: boolean;
+  mode: 'A' | 'B';           // A = total pool; B = per-track
+  totalRequired: number;      // Mode A: how many total
+  optimizerRequired: number;  // Mode B: how many from optimizer
+  builderRequired: number;    // Mode B: how many from builder
+  notice: string;             // shown when disabled
+  resultsRoles: string[];     // roles that can view results
+}
+
+export const PRELIM_CONFIG_KEYS = [
+  'preliminary_enabled',
+  'preliminary_mode',
+  'preliminary_total',
+  'preliminary_optimizer_count',
+  'preliminary_builder_count',
+  'preliminary_results_roles',
+  'preliminary_notice',
+] as const;
+
+export const PRELIM_CONFIG_DEFAULTS: PrelimConfig = {
+  enabled: false,
+  mode: 'A',
+  totalRequired: 30,
+  optimizerRequired: 15,
+  builderRequired: 15,
+  notice: '海选投票暂未开始，敬请期待',
+  resultsRoles: ['admin'],
+};
+
+export function parsePrelimConfig(configMap: Record<string, string>, userRole?: string): PrelimConfig & { canViewResults: boolean } {
+  const enabled = configMap['preliminary_enabled'] === 'true';
+  const mode = (configMap['preliminary_mode'] === 'B' ? 'B' : 'A') as 'A' | 'B';
+  const totalRequired = parseInt(configMap['preliminary_total'] || '30', 10);
+  const optimizerRequired = parseInt(configMap['preliminary_optimizer_count'] || '15', 10);
+  const builderRequired = parseInt(configMap['preliminary_builder_count'] || '15', 10);
+  const notice = configMap['preliminary_notice'] || PRELIM_CONFIG_DEFAULTS.notice;
+  const resultsRoles = (configMap['preliminary_results_roles'] || 'admin').split(',').map(r => r.trim()).filter(Boolean);
+  const canViewResults = userRole ? resultsRoles.includes(userRole) : false;
+  return { enabled, mode, totalRequired, optimizerRequired, builderRequired, notice, resultsRoles, canViewResults };
+}

@@ -394,7 +394,7 @@ export default function GalleryContent() {
                     )}
                     {mediaUrls.length > 0 && (
                       <section>
-                        <p className="text-xs uppercase tracking-widest text-outline font-bold mb-3">截图/录屏</p>
+                        <p className="text-xs uppercase tracking-widest text-outline font-bold mb-3">截图</p>
                         <div className="grid grid-cols-2 gap-4">
                           {mediaUrls.map((url: string, i: number) => {
                             const isVideo = url.match(/\.(mp4|mov|webm|avi)$/i);
