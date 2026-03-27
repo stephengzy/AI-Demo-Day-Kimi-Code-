@@ -482,7 +482,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-surface">
       {/* Header */}
       <header className="bg-surface-container-low border-b border-outline-variant/20">
-        <div className="px-8 py-6">
+        <div className="px-4 md:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-headline font-bold text-on-surface mb-2">管理员后台</h1>
@@ -505,7 +505,7 @@ export default function AdminPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-8 flex gap-1">
+        <div className="px-4 md:px-8 flex gap-1">
           {[
             { id: 'demos', label: '项目管理', icon: LayoutGrid, count: demosTotal },
             { id: 'messages', label: '留言管理', icon: MessageSquare, count: messagesTotal },
@@ -533,7 +533,7 @@ export default function AdminPage() {
       </header>
 
       {/* Main Content */}
-      <main className="p-8">
+      <main className="p-4 md:p-8">
         {/* Alert Messages */}
         {result && (
           <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
@@ -577,6 +577,7 @@ export default function AdminPage() {
                 </div>
               ) : (
                 <>
+                  <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-surface-container-high/50">
                       <tr>
@@ -626,6 +627,7 @@ export default function AdminPage() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
 
                   <div className="px-4 py-3 border-t border-outline-variant/10 flex items-center justify-between">
                     <div className="text-sm text-on-surface-variant">共 {demosTotal} 条记录</div>

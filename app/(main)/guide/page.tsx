@@ -21,11 +21,11 @@ export default function GuidePage() {
   }
 
   return (
-    <div className="px-10 pt-4 pb-16 max-w-5xl">
+    <div className="px-4 md:px-10 pt-4 pb-16 max-w-5xl">
 
       {/* ── Header ── */}
       <header className="mb-12 pb-8 border-b border-outline-variant/20">
-        <h1 className="font-headline text-4xl font-bold text-on-surface leading-tight">
+        <h1 className="font-headline text-3xl md:text-4xl font-bold text-on-surface leading-tight">
           Evolution: AI Demo Day
         </h1>
       </header>
@@ -44,7 +44,7 @@ export default function GuidePage() {
         <p className="text-base text-on-surface-variant mb-5">
           每人不限制赛道数量、不限制提交 Demo 数量，欢迎大家踊跃提交。
         </p>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
           {/* Optimizer */}
           <button
@@ -110,19 +110,20 @@ export default function GuidePage() {
       <section className="mb-12">
         <SectionTitle>时间线</SectionTitle>
         <div className="mb-8" />
-        <div className="relative flex">
+        <div className="relative flex flex-col md:flex-row">
           <div
-            className="absolute top-[9px] h-px bg-outline-variant/30"
+            className="absolute top-[9px] h-px bg-outline-variant/30 hidden md:block"
             style={{ left: 'calc(12.5%)', right: 'calc(12.5%)' }}
           />
+          <div className="absolute left-[8px] top-0 bottom-0 w-px bg-outline-variant/30 md:hidden" />
           {timeline.map((item, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center">
-              <div className={`w-[18px] h-[18px] rounded-full border-2 relative z-10 mb-4 flex-shrink-0 ${
+            <div key={i} className="flex-1 flex flex-row md:flex-col items-center md:items-center gap-3 md:gap-0 py-2 md:py-0">
+              <div className={`w-[18px] h-[18px] rounded-full border-2 relative z-10 mb-0 md:mb-4 flex-shrink-0 ${
                 item.highlight
                   ? 'bg-secondary border-secondary shadow-sm shadow-secondary/30'
                   : 'bg-surface border-outline-variant/50'
               }`} />
-              <div className="text-center px-1">
+              <div className="text-left md:text-center px-1">
                 <p className={`text-sm font-semibold leading-snug mb-1 ${item.highlight ? 'text-secondary' : 'text-on-surface'}`}>
                   {item.title}
                 </p>
@@ -141,7 +142,7 @@ export default function GuidePage() {
         <SectionTitle>当天日程</SectionTitle>
 
         {/* 地点 + 规则 + 奖项 信息条 */}
-        <div className="rounded-xl border border-outline-variant/15 bg-surface-container-low divide-x divide-outline-variant/15 flex mb-4 overflow-hidden">
+        <div className="rounded-xl border border-outline-variant/15 bg-surface-container-low divide-y md:divide-y-0 md:divide-x divide-outline-variant/15 flex flex-col md:flex-row mb-4 overflow-hidden">
           <div className="flex-1 px-5 py-4">
             <p className="text-xs font-bold text-outline/60 uppercase tracking-wider mb-2">地点</p>
             <p className="text-sm text-on-surface font-medium leading-relaxed">
@@ -160,7 +161,7 @@ export default function GuidePage() {
         </div>
 
         {/* 横向议程卡片 */}
-        <div className="grid grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
           {agenda.map((item, i) => (
             <div
               key={i}

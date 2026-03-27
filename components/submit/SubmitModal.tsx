@@ -358,7 +358,7 @@ export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps)
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-5xl bg-surface-container-lowest rounded-xl shadow-[0_8px_32px_rgba(46,52,45,0.06)] overflow-hidden flex flex-row max-h-[90vh] relative">
+      <div className="w-full max-w-5xl bg-surface-container-lowest rounded-xl shadow-[0_8px_32px_rgba(46,52,45,0.06)] overflow-hidden flex flex-row h-screen md:h-auto md:max-h-[90vh] relative">
         {/* 常驻关闭按钮 - 右上角 */}
         <button 
           onClick={onClose} 
@@ -381,7 +381,7 @@ export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps)
         </div>
 
         {/* Right Form */}
-        <div className="flex-1 px-10 pb-10 pt-[84px] overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(var(--outline-rgb), 0.4) transparent' }}>
+        <div className="flex-1 px-4 md:px-10 pb-10 pt-[84px] overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(var(--outline-rgb), 0.4) transparent' }}>
 
           <form onSubmit={handleSubmit} className="space-y-12">
             {/* 1. Choose Your Track - 先选赛道 */}
@@ -802,7 +802,7 @@ export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps)
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-10 py-3 text-sm font-bold uppercase tracking-widest bg-primary text-on-primary hover:bg-primary-dim transition-all shadow-lg hover:shadow-xl rounded disabled:opacity-50"
+                  className="px-4 md:px-10 py-3 text-sm font-bold uppercase tracking-widest bg-primary text-on-primary hover:bg-primary-dim transition-all shadow-lg hover:shadow-xl rounded disabled:opacity-50"
                 >
                   {submitting ? '提交中...' : '提交'}
                 </button>

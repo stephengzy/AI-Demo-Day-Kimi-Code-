@@ -40,8 +40,8 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-screen overflow-hidden bg-surface">
       <Sidebar onSubmitClick={() => handleSubmitClick()} />
-      <main className="ml-64 h-screen overflow-y-auto custom-scrollbar bg-surface relative">
-        <div className="min-h-full pt-6">
+      <main className="md:ml-64 h-screen overflow-y-auto custom-scrollbar bg-surface relative">
+        <div className="min-h-full pt-6 pb-16 md:pb-0">
           {children}
         </div>
       </main>

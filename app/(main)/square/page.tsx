@@ -152,11 +152,11 @@ export default function SquarePage() {
   }
 
   return (
-    <div className="px-12 pb-12 max-w-4xl">
+    <div className="px-4 md:px-12 pb-20 md:pb-12 max-w-4xl">
       {/* Header */}
       <header className="flex-shrink-0 mb-8 pt-4 pb-2">
         <div>
-          <h2 className="font-headline text-4xl font-bold tracking-tight text-on-surface">Discussion Square</h2>
+          <h2 className="font-headline text-2xl md:text-4xl font-bold tracking-tight text-on-surface">Discussion Square</h2>
           <p className="text-base text-on-surface-variant mt-2">
             许愿你最想要的 AI 需求、发布你的 AI 想法、或者聊任何你想聊的
           </p>

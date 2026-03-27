@@ -358,3 +358,13 @@ p {
   margin: 0.8em 0;
 }
 .ProseMirror p { margin: 0.25em 0; }
+
+/* ── Mobile Utilities ── */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Kill 300ms tap delay on mobile */
+button, a, [role="button"] {
+  touch-action: manipulation;
+}
