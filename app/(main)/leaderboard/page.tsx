@@ -94,7 +94,7 @@ export default function LeaderboardPage() {
   const myVotes = votesData?.votes || [];
 
   // Full demo details for right panel (background / solution / media / links)
-  const { data: allDemosData, error: demosError } = useSWR<{ demos: FullDemo[] }>(
+  const { data: allDemosData, error: demosError, isLoading: isDemosLoading } = useSWR<{ demos: FullDemo[] }>(
     '/api/demos', jsonFetcher, { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
   const demoDetails = useMemo(() => {
@@ -102,9 +102,6 @@ export default function LeaderboardPage() {
     allDemosData?.demos?.forEach(d => map.set(d.id, d));
     return map;
   }, [allDemosData]);
-  
-  // Demo 数据加载状态
-  const isDemosLoading = !allDemosData && !demosError;
 
   // Per-tab leaderboard data (lazy loaded)
   const [leaderboardData, setLeaderboardData] = useState<Record<string, LeaderboardItem[]>>({});

@@ -49,7 +49,16 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 const demosFetcher = (url: string): Promise<Demo[]> => 
-  fetch(url).then(r => r.json()).then((d: { demos?: Demo[] }) => shuffleArray(d.demos || []));
+  fetch(url)
+    .then(r => {
+      if (!r.ok) throw new Error('Failed to fetch demos');
+      return r.json();
+    })
+    .then((d: { demos?: Demo[] }) => shuffleArray(d.demos || []))
+    .catch(err => {
+      console.error('Gallery fetch error:', err);
+      return [];
+    });
 
 export default function GalleryContent() {
   const searchParams = useSearchParams();
