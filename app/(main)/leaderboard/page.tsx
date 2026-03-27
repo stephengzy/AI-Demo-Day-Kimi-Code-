@@ -596,6 +596,23 @@ export default function LeaderboardPage() {
 
               {/* Detail body */}
               <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+                {/* 基本信息（不需要 previewDetail） */}
+                <div className="pb-6 border-b border-outline-variant/20">
+                  <p className="text-xs uppercase tracking-widest text-outline font-bold mb-2">负责人</p>
+                  <div className="flex items-center gap-2 text-sm text-on-surface">
+                    <span className="font-semibold">{previewItem.submitter1_name}</span>
+                    {previewItem.submitter1_dept && <span className="text-on-surface-variant">({previewItem.submitter1_dept})</span>}
+                    {previewItem.submitter2_name && (
+                      <>
+                        <span className="text-outline">+</span>
+                        <span className="font-semibold">{previewItem.submitter2_name}</span>
+                        {previewItem.submitter2_dept && <span className="text-on-surface-variant">({previewItem.submitter2_dept})</span>}
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* 需要 previewDetail 的内容 */}
                 {previewDetail ? (
                   <>
                     {(previewDetail.background || previewDetail.solution) && (
@@ -624,21 +641,6 @@ export default function LeaderboardPage() {
                         )}
                       </div>
                     )}
-
-                    <div className="pb-6 border-b border-outline-variant/20">
-                      <p className="text-xs uppercase tracking-widest text-outline font-bold mb-2">负责人</p>
-                      <div className="flex items-center gap-2 text-sm text-on-surface">
-                        <span className="font-semibold">{previewItem.submitter1_name}</span>
-                        {previewItem.submitter1_dept && <span className="text-on-surface-variant">({previewItem.submitter1_dept})</span>}
-                        {previewItem.submitter2_name && (
-                          <>
-                            <span className="text-outline">+</span>
-                            <span className="font-semibold">{previewItem.submitter2_name}</span>
-                            {previewItem.submitter2_dept && <span className="text-on-surface-variant">({previewItem.submitter2_dept})</span>}
-                          </>
-                        )}
-                      </div>
-                    </div>
 
                     {parseDemoLinks(previewDetail.demo_link).length > 0 && (
                       <div>
@@ -677,7 +679,7 @@ export default function LeaderboardPage() {
                     )}
                   </>
                 ) : (
-                  <div className="flex items-center justify-center py-8 text-on-surface-variant text-sm gap-2">
+                  <div className="flex items-center justify-center py-12 text-on-surface-variant text-sm gap-2">
                     <Loader2 size={16} className="animate-spin" /> 加载详情中...
                   </div>
                 )}
