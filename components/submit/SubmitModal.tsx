@@ -707,7 +707,7 @@ export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps)
             </div>
 
             {/* Media Upload - 可选 */}
-            <div className="pt-4">
+            <div className="pt-2">
               <div className="flex items-center justify-between mb-3">
                 <label className="block text-sm text-on-surface-variant/60">
                   截图等（选填，支持多个）
