@@ -648,7 +648,7 @@ export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps)
                 <label className="block font-headline text-xl font-bold text-on-surface mb-1">
                   5. Show Us the Goods
                 </label>
-                <p className="text-sm text-on-surface-variant/60">展示你的作品（Demo、文档、GitHub），可添加多个链接</p>
+                <p className="text-sm text-on-surface-variant/60">展示你的作品（Demo、文档、GitHub等），可添加多个链接</p>
               </div>
               <div className="space-y-3">
                 {demoLinks.map((link, i) => (

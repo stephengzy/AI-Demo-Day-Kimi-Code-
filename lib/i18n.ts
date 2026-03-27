@@ -131,7 +131,7 @@ export const translations = {
       },
       step6: {
         title: "6. 展示作品",
-        desc: "展示你的作品（Demo、文档、GitHub）",
+        desc: "展示你的作品（Demo、文档、GitHub等）",
         placeholder: "演示链接",
       },
       media: {
