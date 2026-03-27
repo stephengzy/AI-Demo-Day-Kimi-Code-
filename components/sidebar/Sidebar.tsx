@@ -5,12 +5,34 @@ import Link from 'next/link';
 import { Compass, LayoutGrid, Trophy, MessageSquare, Plus, LogIn, LogOut, FolderOpen } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageProvider';
 import { useUser } from '@/lib/hooks/useUser';
+import { useState, useEffect, useCallback } from 'react';
+
+const DEADLINE = new Date('2026-03-30T04:00:00Z');
+
+function useCountdown() {
+  const calc = useCallback(() => {
+    const diff = DEADLINE.getTime() - Date.now();
+    if (diff <= 0) return null;
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    return { d, h, m, s };
+  }, []);
+  const [time, setTime] = useState(calc);
+  useEffect(() => {
+    const id = setInterval(() => setTime(calc()), 1000);
+    return () => clearInterval(id);
+  }, [calc]);
+  return time;
+}
 
 export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoading: loading, mutate } = useUser();
   const { t } = useLanguage();
+  const countdown = useCountdown();
 
   const NAV_ITEMS = [
     { href: '/guide', label: t.nav.guide, icon: Compass },
@@ -69,7 +91,7 @@ export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }
         {!loading && (
           <button
             onClick={handleActionClick}
-            className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg transition-all shadow-sm group active:scale-95 ${
+            className={`w-full flex flex-col items-center justify-center gap-0.5 py-3 px-4 rounded-lg transition-all shadow-sm active:scale-95 ${
               user
                 ? 'bg-[#1A1A1A] text-white hover:opacity-90'
                 : 'bg-surface-container-high text-on-surface hover:bg-surface-container-highest border border-outline-variant/30'
@@ -77,14 +99,23 @@ export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }
           >
             {user ? (
               <>
-                <Plus size={16} strokeWidth={2.5} />
-                <span className="font-headline font-bold tracking-tight text-base chinese-text">{t.nav.submit}</span>
+                <div className="flex items-center gap-2">
+                  <Plus size={16} strokeWidth={2.5} />
+                  <span className="font-headline font-bold tracking-tight text-base chinese-text">{t.nav.submit}</span>
+                </div>
+                {countdown ? (
+                  <span className="text-[11px] opacity-60 tabular-nums">
+                    {countdown.d > 0 ? `${countdown.d}天 ` : ''}{String(countdown.h).padStart(2,'0')}:{String(countdown.m).padStart(2,'0')}:{String(countdown.s).padStart(2,'0')} 后截止
+                  </span>
+                ) : (
+                  <span className="text-[11px] opacity-60">已截止</span>
+                )}
               </>
             ) : (
-              <>
+              <div className="flex items-center gap-2">
                 <LogIn size={16} strokeWidth={2.5} />
                 <span className="font-headline font-bold tracking-tight text-base chinese-text">{t.nav.login}</span>
-              </>
+              </div>
             )}
           </button>
         )}

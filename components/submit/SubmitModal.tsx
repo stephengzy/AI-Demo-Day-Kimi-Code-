@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { CheckCircle, Zap, Hammer, X, Upload, Plus, FileImage, FileVideo, Trash2, ExternalLink } from 'lucide-react';
 
 interface DemoLink { title: string; url: string; }
@@ -19,8 +19,29 @@ interface SubmitModalProps {
   initialTrack?: 'optimizer' | 'builder';
 }
 
+const DEADLINE = new Date('2026-03-30T04:00:00Z'); // 东八区 12:00 = UTC 04:00
+
+function useCountdown() {
+  const calc = useCallback(() => {
+    const diff = DEADLINE.getTime() - Date.now();
+    if (diff <= 0) return null;
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    return { d, h, m, s };
+  }, []);
+  const [time, setTime] = useState(calc);
+  useEffect(() => {
+    const id = setInterval(() => setTime(calc()), 1000);
+    return () => clearInterval(id);
+  }, [calc]);
+  return time;
+}
+
 export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps) {
   const { user } = useUser();
+  const countdown = useCountdown();
   const [form, setForm] = useState({
     name: '',
     summary: '',
