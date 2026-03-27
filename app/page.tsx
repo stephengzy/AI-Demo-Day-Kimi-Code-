@@ -215,12 +215,14 @@ function EntryPortalContent() {
               </button>
             </div>
           </form>
-          
-          {/* Contact info */}
-          <p className="text-xs text-center text-on-surface-variant/60 mt-4">
-            如需调整登录名单，请联系恒宇
-          </p>
         </div>
+      </div>
+
+      {/* Footer Contact Info */}
+      <div className="fixed bottom-6 left-0 right-0 z-20 text-center">
+        <p className="text-xs text-on-surface-variant/50">
+          如需调整登录名单，请联系恒宇
+        </p>
       </div>
 
       {/* Left Edge Decoration */}
