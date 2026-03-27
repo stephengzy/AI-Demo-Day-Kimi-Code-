@@ -133,7 +133,7 @@ export async function POST(request: Request) {
   const rows = demo_ids.map((id: number) => ({ voter_id: user.id, demo_id: id, submitted: true }));
   const { error: insertError } = await supabase
     .from('preliminary_votes')
-    .insert(rows);
+    .insert(rows as any);
 
   if (insertError) {
     if (insertError.code === '23505') {
