@@ -77,6 +77,17 @@ export default function AdminPage() {
   const [clearLoading, setClearLoading] = useState(false);
   const [clearVotesLoading, setClearVotesLoading] = useState(false);
 
+  // 海选投票配置
+  const [prelimEnabled, setPrelimEnabled] = useState(false);
+  const [prelimMode, setPrelimMode] = useState<'A' | 'B'>('A');
+  const [prelimTotal, setPrelimTotal] = useState('30');
+  const [prelimOptimizer, setPrelimOptimizer] = useState('15');
+  const [prelimBuilder, setPrelimBuilder] = useState('15');
+  const [prelimRoles, setPrelimRoles] = useState<string[]>(['admin']);
+  const [prelimNotice, setPrelimNotice] = useState('');
+  const [prelimLoading, setPrelimLoading] = useState(false);
+  const [clearPrelimLoading, setClearPrelimLoading] = useState(false);
+
   // 验证权限
   useEffect(() => {
     Promise.all([
@@ -164,8 +175,28 @@ export default function AdminPage() {
     }
   };
 
+  // 加载海选配置
+  const loadPrelimConfig = async () => {
+    try {
+      const res = await fetch('/api/preliminary');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.config) {
+          setPrelimEnabled(data.config.enabled ?? false);
+          setPrelimMode(data.config.mode ?? 'A');
+          setPrelimTotal(String(data.config.totalRequired ?? 30));
+          setPrelimOptimizer(String(data.config.optimizerRequired ?? 15));
+          setPrelimBuilder(String(data.config.builderRequired ?? 15));
+          setPrelimRoles(data.config.resultsRoles ?? ['admin']);
+          setPrelimNotice(data.config.notice ?? '');
+        }
+      }
+    } catch {}
+  };
+
   useEffect(() => {
     if (!loading && activeTab === 'settings') loadSiteStatus();
+    if (!loading && activeTab === 'settings') loadPrelimConfig();
   }, [activeTab, loading]);
 
   // 切换提交开关
@@ -343,6 +374,55 @@ export default function AdminPage() {
       setClearLoading(false);
     }
   }
+
+  // 保存海选配置
+  const savePrelimConfig = async () => {
+    setPrelimLoading(true);
+    try {
+      const res = await fetch('/api/preliminary/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          enabled: prelimEnabled,
+          mode: prelimMode,
+          totalRequired: parseInt(prelimTotal, 10),
+          optimizerCount: parseInt(prelimOptimizer, 10),
+          builderCount: parseInt(prelimBuilder, 10),
+          resultsRoles: prelimRoles,
+          notice: prelimNotice,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setResult({ type: 'success', message: '海选配置已保存' });
+      } else {
+        setResult({ type: 'error', message: data.error || '保存失败' });
+      }
+    } catch (error: any) {
+      setResult({ type: 'error', message: error.message });
+    } finally {
+      setPrelimLoading(false);
+    }
+  };
+
+  // 清空所有海选投票
+  const clearPrelimVotes = async () => {
+    if (!confirm('确定要清空所有海选投票记录吗？\n\n⚠️ 此操作不可恢复，所有用户的海选数据将被清除。')) return;
+    setClearPrelimLoading(true);
+    try {
+      const res = await fetch('/api/preliminary/config', { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setResult({ type: 'success', message: data.message || '海选投票记录已清空' });
+      } else {
+        setResult({ type: 'error', message: data.error || '清空失败' });
+      }
+    } catch {
+      setResult({ type: 'error', message: '网络错误' });
+    } finally {
+      setClearPrelimLoading(false);
+    }
+  };
 
   function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleString('zh-CN', {
@@ -865,6 +945,165 @@ export default function AdminPage() {
                     {clearLoading ? <Loader2 size={14} className="animate-spin" /> : <Trash size={14} />}
                     清空所有数据
                   </button>
+                </div>
+              </div>
+            </section>
+
+            {/* ─── 海选投票 ─── */}
+            <section>
+              <h2 className="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
+                <Trophy size={18} className="text-primary" />
+                海选投票设置
+              </h2>
+              <div className="bg-surface-container-low rounded-xl border border-outline-variant/20 p-6 space-y-5">
+
+                {/* 开启/关闭 */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-on-surface">海选投票</h3>
+                    <p className={`text-sm font-medium mt-0.5 ${prelimEnabled ? 'text-secondary' : 'text-error'}`}>
+                      {prelimEnabled ? '已开放' : '已关闭'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setPrelimEnabled(v => !v)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all active:scale-95 ${
+                      prelimEnabled
+                        ? 'bg-error text-on-error hover:opacity-90'
+                        : 'bg-secondary text-on-secondary hover:opacity-90'
+                    }`}
+                  >
+                    {prelimEnabled ? <><Lock size={14} />关闭</> : <><Unlock size={14} />开放</>}
+                  </button>
+                </div>
+
+                <div className="border-t border-outline-variant/10 pt-5 space-y-4">
+
+                  {/* 投票模式 */}
+                  <div>
+                    <p className="text-sm font-medium text-on-surface mb-2">投票模式</p>
+                    <div className="flex gap-2">
+                      {(['A', 'B'] as const).map(m => (
+                        <button
+                          key={m}
+                          onClick={() => setPrelimMode(m)}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                            prelimMode === m
+                              ? 'bg-primary text-on-primary border-primary'
+                              : 'bg-surface-container border-outline-variant/30 hover:bg-surface-container-high'
+                          }`}
+                        >
+                          {m === 'A' ? '模式 A（总量）' : '模式 B（分赛道）'}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-on-surface-variant mt-1.5">
+                      {prelimMode === 'A'
+                        ? '模式 A：从所有项目中选出总计 N 个，不限赛道'
+                        : '模式 B：分别从 Optimizer 和 Builder 赛道各选 N 个'}
+                    </p>
+                  </div>
+
+                  {/* 数量配置 */}
+                  {prelimMode === 'A' ? (
+                    <div>
+                      <label className="text-sm font-medium text-on-surface">需选总数</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={999}
+                        value={prelimTotal}
+                        onChange={e => setPrelimTotal(e.target.value)}
+                        className="mt-1 w-24 px-3 py-2 bg-surface border border-outline-variant/30 rounded-lg text-sm focus:border-primary focus:outline-none"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex gap-6">
+                      <div>
+                        <label className="text-sm font-medium text-on-surface">Optimizer 赛道选几个</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={999}
+                          value={prelimOptimizer}
+                          onChange={e => setPrelimOptimizer(e.target.value)}
+                          className="mt-1 w-24 px-3 py-2 bg-surface border border-outline-variant/30 rounded-lg text-sm focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-on-surface">Builder 赛道选几个</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={999}
+                          value={prelimBuilder}
+                          onChange={e => setPrelimBuilder(e.target.value)}
+                          className="mt-1 w-24 px-3 py-2 bg-surface border border-outline-variant/30 rounded-lg text-sm focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 结果可见角色 */}
+                  <div>
+                    <p className="text-sm font-medium text-on-surface mb-2">结果可见角色</p>
+                    <div className="flex gap-3">
+                      {['admin', 'pro_judge', 'normal'].map(role => (
+                        <label key={role} className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={prelimRoles.includes(role)}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                setPrelimRoles(prev => [...prev, role]);
+                              } else {
+                                setPrelimRoles(prev => prev.filter(r => r !== role));
+                              }
+                            }}
+                            className="accent-primary w-4 h-4"
+                          />
+                          <span className="text-sm text-on-surface">{
+                            role === 'admin' ? '管理员' :
+                            role === 'pro_judge' ? '评委' :
+                            '普通用户'
+                          }</span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="text-xs text-on-surface-variant mt-1">勾选角色在提交海选后可查看实时结果</p>
+                  </div>
+
+                  {/* 关闭提示语 */}
+                  <div>
+                    <label className="text-sm font-medium text-on-surface">关闭时提示语</label>
+                    <input
+                      type="text"
+                      value={prelimNotice}
+                      onChange={e => setPrelimNotice(e.target.value)}
+                      placeholder="海选投票暂未开始，敬请期待"
+                      className="mt-1 w-full px-3 py-2 bg-surface border border-outline-variant/30 rounded-lg text-sm focus:border-primary focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Save */}
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      onClick={clearPrelimVotes}
+                      disabled={clearPrelimLoading}
+                      className="px-4 py-2 bg-error/10 text-error border border-error/30 rounded-lg text-sm font-medium hover:bg-error/20 transition-colors flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {clearPrelimLoading ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                      清空海选投票记录
+                    </button>
+                    <button
+                      onClick={savePrelimConfig}
+                      disabled={prelimLoading}
+                      className="px-5 py-2 bg-primary text-on-primary rounded-lg text-sm font-medium hover:opacity-90 transition-colors flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {prelimLoading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                      保存海选设置
+                    </button>
+                  </div>
                 </div>
               </div>
             </section>

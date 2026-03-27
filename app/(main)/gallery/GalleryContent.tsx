@@ -38,7 +38,17 @@ interface Demo {
   created_at: string;
 }
 
-const demosFetcher = (url: string) => fetch(url).then(r => r.json()).then(d => d.demos || []);
+// Fisher-Yates 随机排序算法
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+const demosFetcher = (url: string) => fetch(url).then(r => r.json()).then(d => shuffleArray(d.demos || []));
 
 export default function GalleryContent() {
   const searchParams = useSearchParams();
