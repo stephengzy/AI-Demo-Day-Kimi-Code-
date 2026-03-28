@@ -3,11 +3,12 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Loader2, ThumbsUp, CheckCircle, AlertCircle, Lock,
-  Search, ExternalLink, CheckSquare, Square, ChevronRight,
+  Search, ExternalLink, CheckSquare, Square, ChevronRight, ChevronLeft,
 } from 'lucide-react';
 import { BEST_DEMO_AWARDS, SPECIAL_AWARDS } from '@/lib/constants';
 import useSWR from 'swr';
 import { useUser } from '@/lib/hooks/useUser';
+import { useMobile } from '@/lib/hooks/useMobile';
 import dynamicImport from 'next/dynamic';
 
 const Lightbox = dynamicImport(() => import('@/components/Lightbox'), { ssr: false });
@@ -120,6 +121,8 @@ export default function LeaderboardPage() {
   const [lightboxOpen, setLightboxOpen]   = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
+  const isMobile = useMobile();
+  const [showDetail, setShowDetail] = useState(false);
 
   useEffect(() => { setIsClient(true); }, []);
 
@@ -245,7 +248,7 @@ export default function LeaderboardPage() {
   // ── Vote toggling ───────────────────────────────────────────────────────────
 
   function toggleSelection(demoId: number) {
-    if (isVotingClosed) { setMessage({ text: votingStatus!.notice, type: 'error' }); return; }
+    if (isVotingClosed) return;
     if (!user) { setMessage({ text: '请先登录后投票', type: 'error' }); return; }
     const voteType = currentVoteType;
     const maxVotes = currentMaxVotes;
@@ -315,8 +318,8 @@ export default function LeaderboardPage() {
     <div className="flex flex-col h-[calc(100vh-60px)]">
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header className="flex-shrink-0 px-12 pt-4 pb-2">
-        <h2 className="font-headline text-4xl font-bold text-on-surface">Demo Leaderboard</h2>
+      <header className="flex-shrink-0 px-4 md:px-12 pt-4 pb-2">
+        <h2 className="font-headline text-2xl md:text-4xl font-bold text-on-surface">Demo Leaderboard</h2>
         <p className="text-sm text-on-surface-variant mt-0.5">
           最佳Demo各赛道 {BEST_DEMO_AWARDS.best_optimizer.maxVotes} 票 · 专项奖 1 票 · 评委权重 ×2 · 投后不可修改
         </p>
@@ -324,20 +327,20 @@ export default function LeaderboardPage() {
 
       {/* ── Notices ─────────────────────────────────────────────────────────── */}
       {isVotingClosed && (
-        <div className="mx-12 mt-2 flex-shrink-0 p-3 bg-error-container rounded-xl text-on-error-container flex items-center gap-2 text-sm">
+        <div className="mx-4 md:mx-12 mt-2 flex-shrink-0 p-3 bg-error-container rounded-xl text-on-error-container flex items-center gap-2 text-sm">
           <Lock size={15} className="flex-shrink-0" />
           <span className="font-medium">投票暂未开始：{votingStatus!.notice}</span>
         </div>
       )}
       {!user && !isVotingClosed && (
-        <div className="mx-12 mt-2 flex-shrink-0 p-3 bg-surface-container-low rounded-xl text-sm text-on-surface-variant">
+        <div className="mx-4 md:mx-12 mt-2 flex-shrink-0 p-3 bg-surface-container-low rounded-xl text-sm text-on-surface-variant">
           👀 游客模式只能浏览，<a href="/" className="text-primary hover:underline">登录</a>后可参与投票
         </div>
       )}
 
       {/* ── Toast ───────────────────────────────────────────────────────────── */}
       {message && (
-        <div className={`mx-12 mt-2 flex-shrink-0 p-3 rounded-xl flex items-center gap-3 text-sm ${
+        <div className={`mx-4 md:mx-12 mt-2 flex-shrink-0 p-3 rounded-xl flex items-center gap-3 text-sm ${
           message.type === 'success' ? 'bg-secondary-container text-on-secondary-container' : 'bg-error-container text-on-error-container'
         }`}>
           {message.type === 'success' ? <CheckCircle size={15} /> : <AlertCircle size={15} />}
@@ -346,10 +349,10 @@ export default function LeaderboardPage() {
       )}
 
       {/* ── Tab bar ─────────────────────────────────────────────────────────── */}
-      <div className="flex-shrink-0 px-12 pt-3 pb-2 flex items-center gap-4 flex-wrap">
+      <div className="flex-shrink-0 px-4 md:px-12 pt-3 pb-2 flex items-center gap-2 md:gap-4 overflow-x-auto no-scrollbar">
         {/* Best Demo group */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-on-surface-variant/50 uppercase tracking-wider whitespace-nowrap">🏆 最佳Demo</span>
+        <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
+          <span className="text-xs font-bold text-on-surface-variant/50 uppercase tracking-wider whitespace-nowrap hidden md:inline">🏆 最佳Demo</span>
           <div className="flex gap-1 p-1 bg-surface-container-low rounded-xl">
             {TABS.filter(t => t.group === 'best').map(tab => {
               const done = myVotes.some(v => v.vote_type === tab.voteType);
@@ -357,7 +360,7 @@ export default function LeaderboardPage() {
                 <button
                   key={tab.id}
                   onClick={() => handleSwitchTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-headline text-base font-bold transition-all ${
+                  className={`flex items-center gap-1 md:gap-1.5 px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg font-headline text-sm md:text-base font-bold transition-all whitespace-nowrap ${
                     activeTab === tab.id
                       ? tab.id === 'optimizer' ? 'bg-secondary text-on-secondary shadow-sm' : 'bg-tertiary text-on-tertiary shadow-sm'
                       : 'text-on-surface-variant hover:bg-surface-container-high'
@@ -371,11 +374,11 @@ export default function LeaderboardPage() {
           </div>
         </div>
 
-        <div className="w-px h-6 bg-outline-variant/30" />
+        <div className="w-px h-6 bg-outline-variant/30 flex-shrink-0" />
 
         {/* Special awards group */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-on-surface-variant/50 uppercase tracking-wider whitespace-nowrap">⭐ 专项奖</span>
+        <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
+          <span className="text-xs font-bold text-on-surface-variant/50 uppercase tracking-wider whitespace-nowrap hidden md:inline">⭐ 专项奖</span>
           <div className="flex gap-1 p-1 bg-surface-container-low rounded-xl">
             {TABS.filter(t => t.group === 'special').map(tab => {
               const done = myVotes.some(v => v.vote_type === tab.voteType);
@@ -383,7 +386,7 @@ export default function LeaderboardPage() {
                 <button
                   key={tab.id}
                   onClick={() => handleSwitchTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-headline text-base font-bold transition-all ${
+                  className={`flex items-center gap-1 md:gap-1.5 px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg font-headline text-sm md:text-base font-bold transition-all whitespace-nowrap ${
                     activeTab === tab.id ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-high'
                   }`}
                 >
@@ -397,10 +400,10 @@ export default function LeaderboardPage() {
       </div>
 
       {/* ── Split pane ──────────────────────────────────────────────────────── */}
-      <section className="flex-1 flex gap-5 min-h-0 px-12 pb-20">
+      <section className="flex-1 flex flex-col md:flex-row md:gap-5 min-h-0 px-4 md:px-12 pb-20">
 
         {/* ── Left: list ────────────────────────────────────────────────────── */}
-        <div className="w-[420px] flex-shrink-0 flex flex-col h-full overflow-hidden">
+        <div className={`${isMobile && showDetail ? 'hidden' : 'flex'} md:flex w-full md:w-[420px] flex-shrink-0 flex-col h-full overflow-hidden`}>
 
           {/* Search bar */}
           <div className={`flex-shrink-0 p-2 border border-b-0 border-outline-variant/20 rounded-t-xl bg-surface-container-low/50 border-t-2 ${
@@ -453,13 +456,15 @@ export default function LeaderboardPage() {
                     </div>
                   )}
 
+                  {/* wrapper 承载分割线，避免 border-color 简写覆盖 */}
+                  <div className="border-b border-outline-variant/20">
                   <div
                     className={`
-                      flex items-start gap-3 p-3 cursor-pointer transition-all
-                      ${voted    ? 'bg-secondary/5 border-l-2 border-secondary' :
-                        selected ? 'bg-secondary/5 border-l-2 border-secondary/60' :
-                        isPrev   ? 'bg-surface-container-lowest border-l-2 border-primary/30' :
-                                   'border-b border-outline-variant/20 hover:bg-surface-container-high border-l-2 border-transparent'}
+                      flex items-start gap-3 p-3 cursor-pointer transition-all border-l-2
+                      ${voted    ? 'bg-secondary/5 border-secondary' :
+                        selected ? 'bg-secondary/5 border-secondary/60' :
+                        isPrev   ? 'bg-surface-container-lowest border-primary/30' :
+                                   'hover:bg-surface-container-high border-transparent'}
                     `}
                   >
                     {/* Status icon — click to toggle */}
@@ -478,7 +483,7 @@ export default function LeaderboardPage() {
                     {/* Content — click to preview */}
                     <div
                       className="flex-1 min-w-0"
-                      onClick={() => setPreviewId(item.id)}
+                      onClick={() => { setPreviewId(item.id); if (isMobile) setShowDetail(true); }}
                     >
                       {/* Title row: name left, rank badge right */}
                       <div className="flex items-start justify-between gap-2 mb-0.5">
@@ -510,6 +515,7 @@ export default function LeaderboardPage() {
                       </div>
                     </div>
                   </div>
+                  </div>
                 </div>
               );
             })}
@@ -517,7 +523,7 @@ export default function LeaderboardPage() {
         </div>
 
         {/* ── Right: detail ─────────────────────────────────────────────────── */}
-        <div className="flex-1 bg-surface-container-low rounded-xl flex flex-col h-full overflow-hidden border border-outline-variant/10">
+        <div className={`${isMobile && !showDetail ? 'hidden' : 'flex'} md:flex flex-1 bg-surface-container-low rounded-xl flex-col h-full overflow-hidden border border-outline-variant/10`}>
           {previewItem ? (
             <>
               {/* Track color bar */}
@@ -526,8 +532,19 @@ export default function LeaderboardPage() {
                 previewItem.track === 'builder'   ? 'bg-tertiary'  : 'bg-primary'
               }`} />
 
+              {/* Mobile back button */}
+              {isMobile && (
+                <button
+                  onClick={() => setShowDetail(false)}
+                  className="md:hidden flex items-center gap-1 px-4 py-2.5 text-sm text-on-surface-variant border-b border-outline-variant/10 bg-surface-container-low flex-shrink-0"
+                >
+                  <ChevronLeft size={16} />
+                  <span>返回列表</span>
+                </button>
+              )}
+
               {/* Detail header */}
-              <div className="px-8 pt-5 pb-4 flex-shrink-0 border-b border-outline-variant/10">
+              <div className="px-4 md:px-8 pt-5 pb-4 flex-shrink-0 border-b border-outline-variant/10">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
@@ -595,7 +612,7 @@ export default function LeaderboardPage() {
               </div>
 
               {/* Detail body */}
-              <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+              <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-6">
                 {/* 基本信息（不需要 previewDetail） */}
                 <div className="pb-6 border-b border-outline-variant/20">
                   <p className="text-xs uppercase tracking-widest text-outline font-bold mb-2">负责人</p>
@@ -722,22 +739,61 @@ export default function LeaderboardPage() {
         </div>
       </section>
 
-      {/* ── Floating bottom bar ──────────────────────────────────────────────── */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+      {/* ── Floating bottom bar · 手机全宽条 / 桌面胶囊 ─────────────────────── */}
+
+      {/* 手机：全宽条，紧贴底部 Tab Bar 上方 */}
+      <div className={`md:hidden fixed bottom-[60px] inset-x-0 z-50 border-t px-4 py-2.5 flex items-center justify-between transition-all ${
+        canSubmitCurrent
+          ? 'bg-on-surface text-surface border-on-surface/20'
+          : 'bg-surface-container/95 backdrop-blur-sm text-on-surface border-outline-variant/20'
+      }`}>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className={`text-xs font-bold flex-shrink-0 ${canSubmitCurrent ? 'opacity-60' : 'text-on-surface-variant/60'}`}>
+            {tabCfg.icon} {tabCfg.label}
+          </span>
+          <span className={`w-px h-3 flex-shrink-0 ${canSubmitCurrent ? 'bg-surface/20' : 'bg-outline-variant/30'}`} />
+          {hasSubmittedCurrent ? (
+            <span className="text-xs flex items-center gap-1">
+              <CheckCircle size={12} className="text-secondary flex-shrink-0" />
+              <span className="font-medium">已投 {votesUsed}/{currentMaxVotes}</span>
+            </span>
+          ) : (
+            <span className="text-xs font-medium tabular-nums">
+              已选 <span className="font-bold">{selectedForCurrent}</span>/{currentMaxVotes}
+              {remainingVotes > 0 && selectedForCurrent === 0 && (
+                <span className={`ml-1 ${canSubmitCurrent ? 'opacity-60' : 'text-on-surface-variant/50'}`}>还差 {remainingVotes} 票</span>
+              )}
+            </span>
+          )}
+        </div>
+        {!hasSubmittedCurrent && (
+          <button
+            onClick={submitVotes}
+            disabled={!canSubmitCurrent || submitting}
+            className={`flex-shrink-0 flex items-center gap-1 font-bold text-sm px-3 py-1.5 rounded-lg transition-all active:scale-95 ${
+              canSubmitCurrent
+                ? 'bg-surface text-on-surface'
+                : 'text-on-surface-variant/40 cursor-not-allowed'
+            }`}
+          >
+            {submitting ? <Loader2 size={13} className="animate-spin" /> : canSubmitCurrent ? <ThumbsUp size={13} /> : null}
+            {canSubmitCurrent ? `提交 (${selectedForCurrent})` : '选择后提交'}
+          </button>
+        )}
+      </div>
+
+      {/* 桌面：居中胶囊 */}
+      <div className="hidden md:block fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
         <div className={`
           pointer-events-auto flex items-center gap-4 px-5 py-3 rounded-2xl shadow-xl border transition-all
           ${canSubmitCurrent
             ? 'bg-on-surface text-surface border-on-surface/20'
             : 'bg-surface-container text-on-surface border-outline-variant/30'}
         `}>
-          {/* Current tab name */}
           <span className={`text-sm font-bold ${canSubmitCurrent ? 'opacity-50' : 'text-on-surface-variant/50'}`}>
             {tabCfg.icon} {tabCfg.label}
           </span>
-
           <div className={`w-px h-4 ${canSubmitCurrent ? 'bg-surface/20' : 'bg-outline-variant/30'}`} />
-
-          {/* Progress */}
           {hasSubmittedCurrent ? (
             <span className="text-sm flex items-center gap-1.5">
               <CheckCircle size={13} className={canSubmitCurrent ? 'text-surface/60' : 'text-secondary'} />
@@ -751,7 +807,6 @@ export default function LeaderboardPage() {
               )}
             </span>
           )}
-
           {!hasSubmittedCurrent && (
             <>
               <div className={`w-px h-4 ${canSubmitCurrent ? 'bg-surface/20' : 'bg-outline-variant/30'}`} />
@@ -762,10 +817,7 @@ export default function LeaderboardPage() {
                   canSubmitCurrent ? 'text-surface hover:opacity-80 active:scale-95' : 'text-on-surface-variant/40 cursor-not-allowed'
                 }`}
               >
-                {submitting
-                  ? <Loader2 size={14} className="animate-spin" />
-                  : canSubmitCurrent ? <ThumbsUp size={14} /> : null
-                }
+                {submitting ? <Loader2 size={14} className="animate-spin" /> : canSubmitCurrent ? <ThumbsUp size={14} /> : null}
                 {canSubmitCurrent ? `提交投票 (${selectedForCurrent})` : '选择后提交'}
                 {canSubmitCurrent && <ChevronRight size={14} />}
               </button>

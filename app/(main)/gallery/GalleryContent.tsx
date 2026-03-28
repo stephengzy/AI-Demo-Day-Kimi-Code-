@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamicImport from 'next/dynamic';
-import { Search, ExternalLink } from 'lucide-react';
+import { Search, ExternalLink, ChevronLeft } from 'lucide-react';
+import { useMobile } from '@/lib/hooks/useMobile';
 
 // 动态导入 Lightbox 组件，禁用服务端渲染
 const Lightbox = dynamicImport(() => import('@/components/Lightbox'), { ssr: false });
@@ -60,6 +61,9 @@ export default function GalleryContent() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
+  // Mobile list/detail 切换
+  const isMobile = useMobile();
+  const [showDetail, setShowDetail] = useState(false);
   
   // 从 URL 读取 demo 参数
   const demoIdFromUrl = searchParams.get('demo');
@@ -178,16 +182,16 @@ export default function GalleryContent() {
   return (
     <div className="flex flex-col h-[calc(100vh-60px)]">
       {/* Header */}
-      <header className="flex-shrink-0 mb-4 px-12 pt-4 pb-2">
+      <header className="flex-shrink-0 mb-4 px-4 md:px-12 pt-4 pb-2">
         <div>
-          <h2 className="font-headline text-4xl font-bold tracking-tight text-on-surface">Demo Gallery</h2>
+          <h2 className="font-headline text-2xl md:text-4xl font-bold tracking-tight text-on-surface">Demo Gallery</h2>
         </div>
       </header>
 
       {/* Split Pane Layout - 独立滚动 */}
-      <section className="flex-1 flex gap-6 min-h-0 px-12 pb-4">
+      <section className="flex-1 flex flex-col md:flex-row md:gap-6 min-h-0 px-4 md:px-12 pb-4">
         {/* Left Pane: Project List - 独立滚动 */}
-        <div className="w-1/3 flex flex-col h-full overflow-hidden">
+        <div className={`${isMobile && showDetail ? 'hidden' : 'flex'} md:flex w-full md:w-1/3 flex-col h-full overflow-hidden`}>
           {/* Tab Bar */}
           <div className="flex-shrink-0 flex gap-1 p-1 bg-surface-container-low rounded-t-xl">
             <button
@@ -246,7 +250,7 @@ export default function GalleryContent() {
 
           {/* Project List - 独立滚动区域 */}
           <div className="flex-1 overflow-y-auto custom-scrollbar border-x border-b border-outline-variant/20 rounded-b-xl bg-surface-container-low/50">
-            <div className="space-y-1 p-2">
+            <div>
               {activeList.length === 0 ? (
                 <p className="text-center text-on-surface-variant text-sm py-8">暂无项目</p>
               ) : activeList.map(demo => {
@@ -257,15 +261,15 @@ export default function GalleryContent() {
                 const hiddenCount = keywords.length - visibleKeywords.length;
                 const isSelected = selectedDemo?.id === demo.id;
                 return (
+                  <div key={demo.id} className="border-b border-outline-variant/20 last:border-b-0">
                   <div
-                    key={demo.id}
-                    onClick={() => setSelectedDemo(demo)}
-                    className={`p-3 rounded-lg cursor-pointer transition-all group ${
+                    onClick={() => { setSelectedDemo(demo); if (isMobile) setShowDetail(true); }}
+                    className={`p-3 cursor-pointer transition-all group border-l-2 ${
                       isSelected
                         ? activeTrack === 'optimizer'
-                          ? 'bg-surface-container-lowest shadow-sm border-l-2 border-secondary'
-                          : 'bg-surface-container-lowest shadow-sm border-l-2 border-tertiary'
-                        : 'hover:bg-surface-container-high'
+                          ? 'bg-surface-container-lowest border-secondary'
+                          : 'bg-surface-container-lowest border-tertiary'
+                        : 'hover:bg-surface-container-high border-transparent'
                     }`}
                   >
                     <div className="mb-2">
@@ -302,6 +306,7 @@ export default function GalleryContent() {
                       </div>
                     )}
                   </div>
+                  </div>
                 );
               })}
             </div>
@@ -309,12 +314,22 @@ export default function GalleryContent() {
         </div>
 
         {/* Right Pane: Project Detail - 独立滚动 */}
-        <div className="flex-1 bg-surface-container-low rounded-xl flex flex-col h-full overflow-hidden border border-outline-variant/10">
+        <div className={`${isMobile && !showDetail ? 'hidden' : 'flex'} md:flex flex-1 bg-surface-container-low rounded-xl flex-col h-full overflow-hidden border border-outline-variant/10`}>
           {selectedDemo ? (
             <>
               {/* 彩色顶部细线 */}
               <div className={`h-0.5 flex-shrink-0 ${selectedDemo.track === 'optimizer' ? 'bg-secondary' : 'bg-tertiary'}`} />
-              <div className="px-8 pt-5 pb-4 flex-shrink-0 border-b border-outline-variant/10 bg-surface-container-low">
+              {/* Mobile back button */}
+              {isMobile && (
+                <button
+                  onClick={() => setShowDetail(false)}
+                  className="md:hidden flex items-center gap-1 px-4 py-2.5 text-sm text-on-surface-variant border-b border-outline-variant/10 bg-surface-container-low flex-shrink-0"
+                >
+                  <ChevronLeft size={16} />
+                  <span>返回列表</span>
+                </button>
+              )}
+              <div className="px-4 md:px-8 pt-5 pb-4 flex-shrink-0 border-b border-outline-variant/10 bg-surface-container-low">
                 <div className="flex items-center gap-3 mb-2">
                   <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded ${
                     selectedDemo.track === 'optimizer'
@@ -330,7 +345,7 @@ export default function GalleryContent() {
                   {selectedDemo.summary}
                 </p>
               </div>
-              <div className="flex-1 overflow-y-auto custom-scrollbar px-8 py-6">
+              <div className="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-8 py-6">
                 <div className="flex flex-col gap-8">
                   {/* The Story - Why & How */}
                   {(selectedDemo.background || selectedDemo.solution) && (

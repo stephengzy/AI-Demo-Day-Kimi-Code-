@@ -8,8 +8,9 @@
 import { useState } from 'react';
 import {
   CheckCircle, CheckSquare, Square, ThumbsUp,
-  Lock, ExternalLink, ChevronRight,
+  Lock, ExternalLink, ChevronRight, ChevronLeft,
 } from 'lucide-react';
+import { useMobile } from '@/lib/hooks/useMobile';
 
 // ── Mock data ──────────────────────────────────────────────────────────────────
 
@@ -55,6 +56,8 @@ export default function LeaderboardPreviewPage() {
   const [mode, setMode] = useState<ViewMode>('after');
   const [previewId, setPreviewId] = useState(1);
   const [localSelected, setLocalSelected] = useState<Set<number>>(new Set([1, 3, 5]));
+  const isMobile = useMobile();
+  const [showDetail, setShowDetail] = useState(false);
 
   // Simulate state based on mode
   const myVotes = mode === 'after' ? VOTED_IDS.map(id => ({ demo_id: id, vote_type: 'best_optimizer' })) : [];
@@ -93,7 +96,7 @@ export default function LeaderboardPreviewPage() {
     <div className="flex flex-col h-[calc(100vh-60px)]">
 
       {/* ── Preview mode switcher ──────────────────────────────────────────── */}
-      <div className="flex-shrink-0 border-b border-outline-variant/20 px-12 py-2 flex items-center gap-4 bg-surface-container-lowest">
+      <div className="flex-shrink-0 border-b border-outline-variant/20 px-4 md:px-12 py-2 flex items-center gap-4 bg-surface-container-lowest">
         <span className="text-[11px] font-bold text-on-surface-variant/50 uppercase tracking-widest">状态预览</span>
         <div className="flex gap-1 p-1 bg-surface-container-low rounded-xl">
           {(Object.keys(MODE_LABELS) as ViewMode[]).map(m => (
@@ -116,33 +119,33 @@ export default function LeaderboardPreviewPage() {
       </div>
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header className="flex-shrink-0 px-12 pt-4 pb-2">
-        <h2 className="font-headline text-4xl font-bold text-on-surface">Demo Leaderboard</h2>
+      <header className="flex-shrink-0 px-4 md:px-12 pt-4 pb-2">
+        <h2 className="font-headline text-2xl md:text-4xl font-bold text-on-surface">Demo Leaderboard</h2>
         <p className="text-sm text-on-surface-variant mt-0.5">
           最佳Demo各赛道 3 票 · 专项奖 1 票 · 评委权重 ×2 · 投后不可修改
         </p>
       </header>
 
       {/* ── Tab bar ─────────────────────────────────────────────────────────── */}
-      <div className="flex-shrink-0 px-12 pt-2 pb-2 flex items-center gap-4">
+      <div className="flex-shrink-0 px-4 md:px-12 pt-2 pb-2 flex items-center gap-2 md:gap-4 overflow-x-auto no-scrollbar">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-on-surface-variant/50 uppercase tracking-wider">🏆 最佳Demo</span>
+          <span className="text-[11px] font-bold text-on-surface-variant/50 uppercase tracking-wider hidden md:inline">🏆 最佳Demo</span>
           <div className="flex gap-1 p-1 bg-surface-container-low rounded-xl">
-            <button className="flex items-center gap-1.5 px-4 py-2 rounded-lg font-headline text-sm font-bold bg-secondary text-on-secondary shadow-sm">
+            <button className="flex items-center gap-1.5 px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg font-headline text-sm md:text-base font-bold bg-secondary text-on-secondary shadow-sm whitespace-nowrap">
               ⚡ Optimizer
               {mode === 'after' && <CheckCircle size={11} className="opacity-60" />}
             </button>
-            <button className="flex items-center gap-1.5 px-4 py-2 rounded-lg font-headline text-sm font-bold text-on-surface-variant hover:bg-surface-container-high">
+            <button className="flex items-center gap-1.5 px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg font-headline text-sm md:text-base font-bold text-on-surface-variant hover:bg-surface-container-high whitespace-nowrap">
               🛠️ Builder
             </button>
           </div>
         </div>
         <div className="w-px h-6 bg-outline-variant/30" />
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-on-surface-variant/50 uppercase tracking-wider">⭐ 专项奖</span>
+          <span className="text-[11px] font-bold text-on-surface-variant/50 uppercase tracking-wider hidden md:inline">⭐ 专项奖</span>
           <div className="flex gap-1 p-1 bg-surface-container-low rounded-xl">
             {['🧠 最脑洞', '🔥 最感染力', '💎 最实用'].map(label => (
-              <button key={label} className="px-4 py-2 rounded-lg font-headline text-sm font-bold text-on-surface-variant hover:bg-surface-container-high">
+              <button key={label} className="px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg font-headline text-sm md:text-base font-bold text-on-surface-variant hover:bg-surface-container-high whitespace-nowrap">
                 {label}
               </button>
             ))}
@@ -151,10 +154,10 @@ export default function LeaderboardPreviewPage() {
       </div>
 
       {/* ── Split pane ──────────────────────────────────────────────────────── */}
-      <section className="flex-1 flex gap-5 min-h-0 px-12 pb-20">
+      <section className="flex-1 flex flex-col md:flex-row md:gap-5 min-h-0 px-4 md:px-12 pb-20">
 
         {/* Left list */}
-        <div className="w-[420px] flex-shrink-0 flex flex-col h-full overflow-hidden">
+        <div className={`${isMobile && showDetail ? 'hidden' : 'flex'} md:flex w-full md:w-[420px] flex-shrink-0 flex-col h-full overflow-hidden`}>
           <div className="flex-shrink-0 p-2 border border-b-0 border-outline-variant/20 rounded-t-xl bg-surface-container-low/50 border-t-2 border-t-secondary/40">
             <input
               readOnly
@@ -184,12 +187,13 @@ export default function LeaderboardPreviewPage() {
                     </div>
                   )}
 
+                  <div className="border-b border-outline-variant/20">
                   <div
                     className={`flex items-start gap-3 p-3 cursor-pointer transition-all ${
                       voted    ? 'bg-secondary/5 border-l-2 border-secondary' :
                       selected ? 'bg-secondary/5 border-l-2 border-secondary/60' :
                       isPrev   ? 'bg-surface-container-lowest border-l-2 border-primary/30' :
-                                 'border-b border-outline-variant/20 hover:bg-surface-container-high border-l-2 border-transparent'
+                                 'hover:bg-surface-container-high border-l-2 border-transparent'
                     }`}
                   >
                     {/* Status icon — click to toggle */}
@@ -206,7 +210,7 @@ export default function LeaderboardPreviewPage() {
                     </div>
 
                     {/* Content — click to preview */}
-                    <div className="flex-1 min-w-0" onClick={() => setPreviewId(item.id)}>
+                    <div className="flex-1 min-w-0" onClick={() => { setPreviewId(item.id); if (isMobile) setShowDetail(true); }}>
                       {/* Title row: name left, rank badge right */}
                       <div className="flex items-start justify-between gap-2 mb-0.5">
                         <h3 className="text-base font-headline font-bold leading-snug text-on-surface line-clamp-2">{item.name}</h3>
@@ -233,6 +237,7 @@ export default function LeaderboardPreviewPage() {
                       </div>
                     </div>
                   </div>
+                  </div>
                 </div>
               );
             })}
@@ -240,11 +245,21 @@ export default function LeaderboardPreviewPage() {
         </div>
 
         {/* Right detail */}
-        <div className="flex-1 bg-surface-container-low rounded-xl flex flex-col h-full overflow-hidden border border-outline-variant/10">
+        <div className={`${isMobile && !showDetail ? 'hidden' : 'flex'} md:flex flex-1 bg-surface-container-low rounded-xl flex-col h-full overflow-hidden border border-outline-variant/10`}>
           <div className="h-0.5 flex-shrink-0 bg-secondary" />
 
+          {isMobile && (
+            <button
+              onClick={() => setShowDetail(false)}
+              className="md:hidden flex items-center gap-1 px-4 py-2.5 text-sm text-on-surface-variant border-b border-outline-variant/10 bg-surface-container-low flex-shrink-0"
+            >
+              <ChevronLeft size={16} />
+              <span>返回列表</span>
+            </button>
+          )}
+
           {/* Header */}
-          <div className="px-8 pt-5 pb-4 flex-shrink-0 border-b border-outline-variant/10">
+          <div className="px-4 md:px-8 pt-5 pb-4 flex-shrink-0 border-b border-outline-variant/10">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
@@ -295,7 +310,7 @@ export default function LeaderboardPreviewPage() {
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+          <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-6">
             <div className="space-y-5 pb-6 border-b border-outline-variant/20">
               <div>
                 <p className="text-xs uppercase tracking-widest text-secondary font-bold mb-2">Why / 为什么要做</p>
@@ -350,7 +365,7 @@ export default function LeaderboardPreviewPage() {
       </section>
 
       {/* ── Bottom bar ──────────────────────────────────────────────────────── */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+      <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
         <div className={`
           pointer-events-auto flex items-center gap-4 px-5 py-3 rounded-2xl shadow-xl border transition-all
           ${canSubmit

@@ -353,12 +353,12 @@ export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps)
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-on-surface/5 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-8 bg-on-surface/5 backdrop-blur-md"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-5xl bg-surface-container-lowest rounded-xl shadow-[0_8px_32px_rgba(46,52,45,0.06)] overflow-hidden flex flex-row h-screen md:h-auto md:max-h-[90vh] relative">
+      <div className="w-full h-full md:h-auto md:max-w-5xl md:max-h-[90vh] bg-surface-container-lowest md:rounded-xl shadow-[0_8px_32px_rgba(46,52,45,0.06)] overflow-hidden flex flex-row relative">
         {/* 常驻关闭按钮 - 右上角 */}
         <button 
           onClick={onClose} 
@@ -381,7 +381,7 @@ export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps)
         </div>
 
         {/* Right Form */}
-        <div className="flex-1 px-4 md:px-10 pb-10 pt-[84px] overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(var(--outline-rgb), 0.4) transparent' }}>
+        <div className="flex-1 px-4 md:px-10 pb-20 md:pb-10 pt-16 md:pt-[84px] overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(var(--outline-rgb), 0.4) transparent' }}>
 
           <form onSubmit={handleSubmit} className="space-y-12">
             {/* 1. Choose Your Track - 先选赛道 */}

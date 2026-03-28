@@ -24,10 +24,8 @@ export default function GuidePage() {
     <div className="px-4 md:px-10 pt-4 pb-16 max-w-5xl">
 
       {/* ── Header ── */}
-      <header className="mb-12 pb-8 border-b border-outline-variant/20">
-        <h1 className="font-headline text-3xl md:text-4xl font-bold text-on-surface leading-tight">
-          Evolution: AI Demo Day
-        </h1>
+      <header className="mb-8 pb-2">
+        <h2 className="font-headline text-2xl md:text-4xl font-bold text-on-surface">Evolution: AI Demo Day</h2>
       </header>
 
       {/* ── 活动背景 ── */}

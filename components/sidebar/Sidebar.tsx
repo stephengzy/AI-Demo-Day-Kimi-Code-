@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Compass, LayoutGrid, Trophy, MessageSquare, Plus, LogIn, LogOut, FolderOpen } from 'lucide-react';
+import { Compass, LayoutGrid, Trophy, MessageSquare, Plus, LogIn, LogOut, FolderOpen, UserCircle, X } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageProvider';
 import { useUser } from '@/lib/hooks/useUser';
 import { useState, useEffect, useCallback } from 'react';
@@ -33,6 +33,7 @@ export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }
   const { user, isLoading: loading, mutate } = useUser();
   const { t } = useLanguage();
   const countdown = useCountdown();
+  const [showProfile, setShowProfile] = useState(false);
 
   const NAV_ITEMS = [
     { href: '/guide', label: t.nav.guide, icon: Compass },
@@ -56,8 +57,109 @@ export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }
     router.push('/');
   };
 
+  const handleLogoutFromSheet = async () => {
+    setShowProfile(false);
+    await handleLogout();
+  };
+
   return (
     <>
+      {/* ── Mobile: 右上角头像入口 ── */}
+      {!loading && (
+        <button
+          onClick={() => setShowProfile(true)}
+          className={`fixed top-4 right-4 md:hidden z-40 flex items-center justify-center w-9 h-9 rounded-full shadow-sm active:scale-95 transition-all ${
+            user
+              ? 'bg-[#1A1A1A] text-white border border-[#1A1A1A]'
+              : 'bg-[#f3f4ee] border border-outline-variant/30 text-on-surface-variant'
+          }`}
+          aria-label="个人信息"
+        >
+          <UserCircle size={20} strokeWidth={user ? 1.5 : 1.5} />
+        </button>
+      )}
+
+      {/* ── Mobile: 个人信息底部抽屉 ── */}
+      {showProfile && (
+        <div className="md:hidden fixed inset-0 z-[70]">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-on-surface/40 backdrop-blur-sm"
+            onClick={() => setShowProfile(false)}
+          />
+          {/* Sheet */}
+          <div className="absolute bottom-0 inset-x-0 bg-surface-container-lowest rounded-t-2xl safe-area-pb">
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-outline-variant/40" />
+            </div>
+
+            {/* Header: 用户信息 */}
+            <div className="flex items-center justify-between px-6 pt-3 pb-5 border-b border-outline-variant/15">
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg font-bold text-on-surface">{user.name.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <p className="font-headline font-bold text-base text-on-surface chinese-text">{user.name}</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5 chinese-text">{user.department}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-surface-container-high flex items-center justify-center flex-shrink-0">
+                    <UserCircle size={24} className="text-on-surface-variant" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-on-surface-variant">游客模式</p>
+                    <p className="text-xs text-on-surface-variant/60 mt-0.5">登录后可提交 Demo 和投票</p>
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={() => setShowProfile(false)}
+                className="p-2 text-on-surface-variant rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Actions */}
+            <div className="px-4 py-3 space-y-1">
+              {user ? (
+                <>
+                  <Link
+                    href="/my-demos"
+                    onClick={() => setShowProfile(false)}
+                    className="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-surface-container-low transition-colors"
+                  >
+                    <FolderOpen size={20} className="text-on-surface-variant" />
+                    <span className="font-medium text-on-surface chinese-text">我的 Demo</span>
+                  </Link>
+                  <button
+                    onClick={handleLogoutFromSheet}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-error/5 text-error transition-colors"
+                  >
+                    <LogOut size={20} />
+                    <span className="font-medium">退出登录</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => { setShowProfile(false); router.push('/'); }}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-primary text-on-primary transition-colors active:scale-95"
+                >
+                  <LogIn size={20} />
+                  <span className="font-bold chinese-text">登录</span>
+                </button>
+              )}
+            </div>
+            <div className="h-4" />
+          </div>
+        </div>
+      )}
+
       {/* ── Desktop Sidebar ── */}
       <aside className="h-screen w-64 fixed left-0 top-0 bg-[#f3f4ee] hidden md:flex flex-col pt-10 pb-8 px-6 gap-y-4 z-50">
         {/* Branding */}
@@ -151,36 +253,72 @@ export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }
       </aside>
 
       {/* ── Mobile Bottom Tab Bar ── */}
-      <nav className="fixed bottom-0 inset-x-0 md:hidden z-50 bg-[#f3f4ee] border-t border-outline-variant/20 flex items-center justify-around px-1 pt-1.5 pb-1.5 safe-area-pb">
-        {NAV_ITEMS.map(item => {
-          const isActive = pathname === item.href;
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 min-w-[56px] rounded-lg transition-colors ${
-                isActive
-                  ? 'text-[#1A1A1A] font-bold'
-                  : 'text-[#5f5e5e] opacity-70'
-              }`}
-            >
-              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-medium leading-tight truncate max-w-[56px]">{item.label}</span>
-            </Link>
-          );
-        })}
-        {/* Submit / Login button */}
-        {!loading && (
-          <button
-            onClick={handleActionClick}
-            className="flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 min-w-[56px] rounded-lg text-[#5f5e5e] opacity-70 transition-colors"
-          >
-            {user ? <Plus size={20} strokeWidth={2} /> : <LogIn size={20} strokeWidth={2} />}
-            <span className="text-[10px] font-medium leading-tight">{user ? t.nav.submit : t.nav.login}</span>
-          </button>
-        )}
-      </nav>
+      {(() => {
+        // 手机底栏固定 4 个导航项（不含 My Demos），中央放 FAB
+        const MOBILE_NAV = [
+          { href: '/guide',       label: t.nav.guide,       icon: Compass },
+          { href: '/gallery',     label: t.nav.gallery,     icon: LayoutGrid },
+          { href: '/leaderboard', label: t.nav.leaderboard, icon: Trophy },
+          { href: '/square',      label: t.nav.square,      icon: MessageSquare },
+        ];
+        const leftNav  = MOBILE_NAV.slice(0, 2);
+        const rightNav = MOBILE_NAV.slice(2);
+
+        return (
+          <nav className="fixed bottom-0 inset-x-0 md:hidden z-50 bg-[#f3f4ee] border-t border-outline-variant/20 flex items-center justify-around px-2 pt-1 pb-1 safe-area-pb">
+            {/* Left 2 tabs */}
+            {leftNav.map(item => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-3 rounded-lg transition-colors ${
+                    isActive ? 'text-[#1A1A1A] font-bold' : 'text-[#5f5e5e] opacity-70'
+                  }`}
+                >
+                  <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                  <span className="text-[10px] font-medium leading-tight">{item.label}</span>
+                </Link>
+              );
+            })}
+
+            {/* Center FAB */}
+            {!loading && (
+              <button
+                onClick={handleActionClick}
+                className={`flex flex-col items-center justify-center gap-0.5 w-14 h-14 -mt-5 rounded-2xl shadow-lg active:scale-95 transition-all ${
+                  user
+                    ? 'bg-[#1A1A1A] text-white'
+                    : 'bg-[#1A1A1A] text-white'
+                }`}
+              >
+                {user ? <Plus size={22} strokeWidth={2.5} /> : <LogIn size={20} strokeWidth={2} />}
+                <span className="text-[9px] font-bold leading-tight">{user ? t.nav.submit : t.nav.login}</span>
+              </button>
+            )}
+
+            {/* Right 2 tabs */}
+            {rightNav.map(item => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-3 rounded-lg transition-colors ${
+                    isActive ? 'text-[#1A1A1A] font-bold' : 'text-[#5f5e5e] opacity-70'
+                  }`}
+                >
+                  <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                  <span className="text-[10px] font-medium leading-tight">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        );
+      })()}
     </>
   );
 }

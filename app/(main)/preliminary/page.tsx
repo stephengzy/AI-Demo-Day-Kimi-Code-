@@ -4,10 +4,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Loader2, CheckCircle, AlertCircle, Lock, CheckSquare, Square,
-  Trophy, BarChart2, ExternalLink, ChevronRight,
+  Trophy, BarChart2, ExternalLink, ChevronRight, ChevronLeft,
 } from 'lucide-react';
 import useSWR from 'swr';
 import { useUser } from '@/lib/hooks/useUser';
+import { useMobile } from '@/lib/hooks/useMobile';
 import type { PrelimConfig } from '@/lib/constants';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -85,7 +86,7 @@ function ResultsView() {
   if (!data?.results) return <p className="py-8 text-center text-on-surface-variant">暂无结果</p>;
 
   return (
-    <div className="space-y-6 px-12 pt-6">
+    <div className="space-y-6 px-4 md:px-12 pt-6">
       <p className="text-sm text-on-surface-variant">
         已提交人数：<span className="font-bold text-on-surface">{data.totalVoters}</span> 人
       </p>
@@ -96,6 +97,7 @@ function ResultsView() {
             <h3 className="font-headline font-bold text-base mb-3">
               {track === 'optimizer' ? '⚡ Optimizer 赛道' : '🛠️ Builder 赛道'}
             </h3>
+            <div className="overflow-x-auto">
             <div className="rounded-xl border border-outline-variant/10 overflow-hidden">
               <table className="w-full">
                 <thead className="bg-surface-container-low/60">
@@ -132,6 +134,7 @@ function ResultsView() {
                 </tbody>
               </table>
             </div>
+            </div>
           </section>
         );
       })}
@@ -165,6 +168,9 @@ export default function PreliminaryPage() {
 
   // Selected demo for right-pane preview (null = show first item)
   const [previewDemo, setPreviewDemo] = useState<Demo | null>(null);
+
+  const isMobile = useMobile();
+  const [showDetail, setShowDetail] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -245,7 +251,7 @@ export default function PreliminaryPage() {
 
   if (!user) {
     return (
-      <div className="px-12 py-16 text-center">
+      <div className="px-4 md:px-12 py-16 text-center">
         <p className="text-on-surface-variant mb-4">请先登录后参与海选投票</p>
         <a href="/" className="px-5 py-2 bg-primary text-on-primary rounded-lg text-sm font-medium hover:opacity-90">前往登录</a>
       </div>
@@ -254,7 +260,7 @@ export default function PreliminaryPage() {
 
   if (!config.enabled) {
     return (
-      <div className="px-12 py-12">
+      <div className="px-4 md:px-12 py-12">
         <h2 className="font-headline text-3xl font-bold mb-6">海选投票</h2>
         <div className="p-5 bg-error-container rounded-xl text-on-error-container flex items-start gap-3">
           <Lock size={20} className="mt-0.5 flex-shrink-0" />
@@ -296,8 +302,8 @@ export default function PreliminaryPage() {
   if (submitted || showResults) {
     return (
       <div className="flex flex-col h-[calc(100vh-60px)]">
-        <header className="flex-shrink-0 px-12 pt-4 pb-2 flex items-center justify-between">
-          <h2 className="font-headline text-4xl font-bold text-on-surface">海选投票</h2>
+        <header className="flex-shrink-0 px-4 md:px-12 pt-4 pb-2 flex items-center justify-between">
+          <h2 className="font-headline text-2xl md:text-4xl font-bold text-on-surface">海选投票</h2>
           {config.canViewResults && (
             <button
               onClick={() => setShowResults(v => !v)}
@@ -309,7 +315,7 @@ export default function PreliminaryPage() {
           )}
         </header>
         {message && (
-          <div className={`mx-12 mb-4 p-3.5 rounded-xl flex items-center gap-3 text-sm ${
+          <div className={`mx-4 md:mx-12 mb-4 p-3.5 rounded-xl flex items-center gap-3 text-sm ${
             message.type === 'success' ? 'bg-secondary-container text-on-secondary-container' : 'bg-error-container text-on-error-container'
           }`}>
             {message.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
@@ -339,10 +345,10 @@ export default function PreliminaryPage() {
     <div className="flex flex-col h-[calc(100vh-60px)]">
 
       {/* ── Header ────────────────────────────────────────────────────────────── */}
-      <header className="flex-shrink-0 px-12 pt-4 pb-2">
+      <header className="flex-shrink-0 px-4 md:px-12 pt-4 pb-2">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="font-headline text-4xl font-bold text-on-surface">海选投票</h2>
+            <h2 className="font-headline text-2xl md:text-4xl font-bold text-on-surface">海选投票</h2>
             <p className="text-on-surface-variant text-sm mt-0.5">
               {config.mode === 'A'
                 ? `从所有项目中选出 ${config.totalRequired} 个最值得晋级的项目`
@@ -352,7 +358,7 @@ export default function PreliminaryPage() {
             </p>
           </div>
           {config.canViewResults && (
-            <button onClick={() => setShowResults(true)} className="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-lg text-sm hover:bg-surface-container-highest transition-colors">
+            <button onClick={() => setShowResults(true)} className="hidden md:flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-lg text-sm hover:bg-surface-container-highest transition-colors">
               <BarChart2 size={15} />查看结果
             </button>
           )}
@@ -361,7 +367,7 @@ export default function PreliminaryPage() {
 
       {/* ── Toast ─────────────────────────────────────────────────────────────── */}
       {message && (
-        <div className={`mx-12 mb-2 p-3 rounded-xl flex items-center gap-3 text-sm flex-shrink-0 ${
+        <div className={`mx-4 md:mx-12 mb-2 p-3 rounded-xl flex items-center gap-3 text-sm flex-shrink-0 ${
           message.type === 'success' ? 'bg-secondary-container text-on-secondary-container' : 'bg-error-container text-on-error-container'
         }`}>
           {message.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
@@ -370,10 +376,10 @@ export default function PreliminaryPage() {
       )}
 
       {/* ── Split pane ────────────────────────────────────────────────────────── */}
-      <section className="flex-1 flex gap-5 min-h-0 px-12 pb-20"> {/* pb-20 for floating bar */}
+      <section className="flex-1 flex flex-col md:flex-row md:gap-5 min-h-0 px-4 md:px-12 pb-20"> {/* pb-20 for floating bar */}
 
         {/* ── Left: list ──────────────────────────────────────────────────────── */}
-        <div className="w-[320px] flex-shrink-0 flex flex-col h-full overflow-hidden">
+        <div className={`${isMobile && showDetail ? 'hidden' : 'flex'} md:flex w-full md:w-[320px] flex-shrink-0 flex-col h-full overflow-hidden`}>
 
           {/* Track tabs */}
           <div className="flex-shrink-0 flex gap-1 p-1 bg-surface-container-low rounded-t-xl">
@@ -414,9 +420,8 @@ export default function PreliminaryPage() {
                 ? demo.keywords.split(/[、,，]/).map(k => k.trim()).filter(Boolean).slice(0, 3)
                 : [];
               return (
+                <div key={demo.id} className="border-b border-outline-variant/20">
                 <div
-                  key={demo.id}
-                  onClick={() => { handleToggle(demo.id); setPreviewDemo(demo); }}
                   className={`
                     flex items-start gap-3 p-3 cursor-pointer transition-all
                     ${isPreviewing && !isSelected
@@ -425,35 +430,40 @@ export default function PreliminaryPage() {
                         : 'bg-surface-container-lowest border-l-2 border-tertiary'
                       : isSelected
                         ? 'bg-secondary/5 border-l-2 border-secondary'
-                        : 'border-b border-outline-variant/20 hover:bg-surface-container-high border-l-2 border-transparent'
+                        : 'hover:bg-surface-container-high border-l-2 border-transparent'
                     }
                   `}
                 >
-                  {/* Checkbox */}
-                  <div className="flex-shrink-0 mt-0.5">
+                  {/* Checkbox — 点击仅切换选中状态，不跳转详情 */}
+                  <div
+                    className="flex-shrink-0 mt-0.5 cursor-pointer"
+                    onClick={e => { e.stopPropagation(); handleToggle(demo.id); setPreviewDemo(demo); }}
+                  >
                     {isSelected
                       ? <CheckSquare size={18} className="text-secondary" />
                       : <Square size={18} className="text-outline-variant/40" />
                     }
                   </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-1 mb-0.5">
-                      <h3 className="text-sm font-bold leading-snug line-clamp-2 text-on-surface">{demo.name}</h3>
-                    </div>
+                  {/* Content — 点击预览/跳转详情 */}
+                  <div
+                    className="flex-1 min-w-0"
+                    onClick={() => { setPreviewDemo(demo); if (isMobile) setShowDetail(true); }}
+                  >
+                    <h3 className="font-headline text-base font-bold leading-snug line-clamp-2 text-on-surface mb-0.5">{demo.name}</h3>
                     <p className="text-xs text-on-surface-variant/70 line-clamp-1 mb-1.5">{demo.summary}</p>
                     <div className="flex items-center gap-1 flex-wrap">
                       {keywords.map((kw, i) => (
-                        <span key={i} className={`text-[10px] px-1.5 py-0.5 rounded ${
+                        <span key={i} className={`text-xs px-1.5 py-0.5 rounded ${
                           activeTrack === 'optimizer' ? 'bg-secondary/10 text-secondary' : 'bg-tertiary/10 text-tertiary'
                         }`}>{kw}</span>
                       ))}
-                      <span className="text-[10px] text-on-surface-variant/50 ml-auto">
+                      <span className="text-xs text-on-surface-variant/50 ml-auto">
                         {demo.submitter1_name}{demo.submitter2_name ? ` +1` : ''}
                       </span>
                     </div>
                   </div>
+                </div>
                 </div>
               );
             })}
@@ -461,14 +471,25 @@ export default function PreliminaryPage() {
         </div>
 
         {/* ── Right: detail ───────────────────────────────────────────────────── */}
-        <div className="flex-1 bg-surface-container-low rounded-xl flex flex-col h-full overflow-hidden border border-outline-variant/10">
+        <div className={`${isMobile && !showDetail ? 'hidden' : 'flex'} md:flex flex-1 bg-surface-container-low rounded-xl flex-col h-full overflow-hidden border border-outline-variant/10`}>
           {detail ? (
             <>
               {/* Track color bar */}
               <div className={`h-0.5 flex-shrink-0 ${detail.track === 'optimizer' ? 'bg-secondary' : 'bg-tertiary'}`} />
 
+              {/* Mobile back button */}
+              {isMobile && (
+                <button
+                  onClick={() => setShowDetail(false)}
+                  className="md:hidden flex items-center gap-1 px-4 py-2.5 text-sm text-on-surface-variant border-b border-outline-variant/10 bg-surface-container-low flex-shrink-0"
+                >
+                  <ChevronLeft size={16} />
+                  <span>返回列表</span>
+                </button>
+              )}
+
               {/* Detail header with select button */}
-              <div className="px-8 pt-5 pb-4 flex-shrink-0 border-b border-outline-variant/10">
+              <div className="px-4 md:px-8 pt-5 pb-4 flex-shrink-0 border-b border-outline-variant/10">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
@@ -499,7 +520,7 @@ export default function PreliminaryPage() {
               </div>
 
               {/* Detail body */}
-              <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+              <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-6">
                 {(detail.background || detail.solution) && (
                   <div className="space-y-5 pb-6 border-b border-outline-variant/20">
                     {detail.background && (
@@ -584,13 +605,50 @@ export default function PreliminaryPage() {
         </div>
       </section>
 
-      {/* ── Floating bottom bar ───────────────────────────────────────────────── */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+      {/* ── Floating bottom bar · 手机全宽条 / 桌面胶囊 ─────────────────────── */}
+
+      {/* 手机：全宽条，紧贴底部 Tab Bar 上方 */}
+      <div className={`md:hidden fixed bottom-[60px] inset-x-0 z-50 border-t px-4 py-2.5 flex items-center justify-between transition-all ${
+        canSubmit
+          ? 'bg-on-surface text-surface border-on-surface/20'
+          : 'bg-surface-container/95 backdrop-blur-sm text-on-surface border-outline-variant/20'
+      }`}>
+        <div className="flex items-center gap-2 min-w-0">
+          {config.mode === 'A' ? (
+            <span className="text-xs font-medium tabular-nums">
+              已选 <span className="font-bold">{localSelections.size}</span>/{config.totalRequired}
+              {!canSubmit && localSelections.size < config.totalRequired && (
+                <span className="ml-1 text-on-surface-variant/50">还差 {config.totalRequired - localSelections.size} 个</span>
+              )}
+            </span>
+          ) : (
+            <span className="text-xs font-medium tabular-nums">
+              ⚡ <span className="font-bold">{optimizerSelected}</span>/{config.optimizerRequired}
+              <span className="mx-1 text-outline-variant/40">·</span>
+              🛠️ <span className="font-bold">{builderSelected}</span>/{config.builderRequired}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={handleSubmit}
+          disabled={!canSubmit || submitting}
+          className={`flex-shrink-0 flex items-center gap-1 font-bold text-sm px-3 py-1.5 rounded-lg transition-all active:scale-95 ${
+            canSubmit
+              ? 'bg-surface text-on-surface'
+              : 'text-on-surface-variant/40 cursor-not-allowed'
+          }`}
+        >
+          {submitting ? <Loader2 size={13} className="animate-spin" /> : canSubmit ? <CheckCircle size={13} /> : null}
+          {submitLabel}
+        </button>
+      </div>
+
+      {/* 桌面：居中胶囊 */}
+      <div className="hidden md:block fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
         <div className={`
           pointer-events-auto flex items-center gap-4 px-5 py-3 rounded-2xl shadow-xl border transition-all
           ${canSubmit ? 'bg-on-surface text-surface border-on-surface/20' : 'bg-surface-container text-on-surface border-outline-variant/30'}
         `}>
-          {/* Progress */}
           {config.mode === 'A' ? (
             <span className={`text-sm font-medium tabular-nums ${canSubmit ? 'opacity-80' : ''}`}>
               已选 <span className="font-bold">{localSelections.size}</span> / {config.totalRequired}
@@ -606,10 +664,7 @@ export default function PreliminaryPage() {
               </span>
             </div>
           )}
-
           <div className={`w-px h-4 ${canSubmit ? 'bg-surface/20' : 'bg-outline-variant/30'}`} />
-
-          {/* Submit */}
           <button
             onClick={handleSubmit}
             disabled={!canSubmit || submitting}
