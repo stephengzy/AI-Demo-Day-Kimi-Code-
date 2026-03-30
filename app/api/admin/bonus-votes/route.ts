@@ -34,8 +34,9 @@ export async function GET() {
   ]);
 
   let bonusVotes: BonusVoteEntry[] = [];
-  if (bonusRes.data?.value) {
-    try { bonusVotes = JSON.parse(bonusRes.data.value); } catch {}
+  const bonusData = bonusRes.data as { value: string } | null;
+  if (bonusData?.value) {
+    try { bonusVotes = JSON.parse(bonusData.value); } catch {}
   }
 
   return NextResponse.json({ bonusVotes, demos: demosRes.data || [] });
