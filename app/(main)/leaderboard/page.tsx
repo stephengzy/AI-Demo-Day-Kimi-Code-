@@ -86,8 +86,8 @@ function getTabConfig(tab: TabType) {
 export default function LeaderboardPage() {
   const { user } = useUser();
 
-  const { data: votingStatus } = useSWR<{ isVotingOpen: boolean; notice: string }>(
-    '/api/config', jsonFetcher, { revalidateOnFocus: false, dedupingInterval: 60000 }
+  const { data: votingStatus } = useSWR<{ isVotingOpen: boolean; notice: string; leaderboardResultsVisible: boolean }>(
+    '/api/config', jsonFetcher, { revalidateOnFocus: false, dedupingInterval: 30000 }
   );
   const { data: votesData, mutate: mutateVotes } = useSWR<{ votes: Vote[] }>(
     '/api/votes', jsonFetcher, { revalidateOnFocus: false, dedupingInterval: 30000 }
@@ -196,25 +196,26 @@ export default function LeaderboardPage() {
   const hasSubmittedCurrent = votesUsed > 0;
   const canSubmitCurrent    = selectedForCurrent > 0 && !hasSubmittedCurrent;
   const remainingVotes      = currentMaxVotes - votesUsed - selectedForCurrent;
-  const showResults         = hasSubmittedCurrent;
+  // 结果仅在 admin 开放后展示
+  const showResults         = votingStatus?.leaderboardResultsVisible === true;
 
   const currentData = leaderboardData[activeTab] || [];
 
   const { filteredList, rankMap } = useMemo(() => {
-    // rankMap only populated after voting — prevents showing rankings before vote
+    // rankMap only populated when admin has opened results
     const rankMap = showResults
       ? new Map(
           [...currentData]
-            .sort((a, b) => b.vote_count - a.vote_count)
+            .sort((a, b) => b.score - a.score)
             .slice(0, 10)
             .map((item, i) => [item.id, i + 1])
         )
       : new Map<number, number>();
 
-    // Before voting: use per-tab shuffled order; after voting: sort by vote_count (top10 first)
+    // Before results: use per-tab shuffled order; after results open: sort by score (top10 first)
     let list: LeaderboardItem[];
     if (showResults) {
-      const sorted   = [...currentData].sort((a, b) => b.vote_count - a.vote_count);
+      const sorted   = [...currentData].sort((a, b) => b.score - a.score);
       const top10    = sorted.slice(0, 10);
       const top10Ids = new Set(top10.map(i => i.id));
       list = [...top10, ...currentData.filter(i => !top10Ids.has(i.id))];
@@ -508,7 +509,7 @@ export default function LeaderboardPage() {
                         ))}
                         <span className="text-xs ml-auto">
                           {showResults && rank
-                            ? <span className="font-bold text-on-surface/60">{item.vote_count} 票</span>
+                            ? <span className="font-bold text-on-surface/60">{item.score} 票</span>
                             : <span className="text-on-surface-variant/50">{item.submitter1_name}{item.submitter2_name ? ' +1' : ''}</span>
                           }
                         </span>
