@@ -288,7 +288,7 @@ export default function PreliminaryPage() {
       {/* ── 截止通知 ──────────────────────────────────────────────────────────── */}
       <div className="mx-4 md:mx-12 mb-2 mt-1 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-sm text-amber-800 flex-shrink-0">
         <span className="text-base">⏰</span>
-        <span>海选截止 <strong>3月31日（周二）中午 12:00</strong>，请尽快完成投票</span>
+        <span>海选截止 <strong>3月30日（周一）24:00</strong>，请尽快完成投票</span>
       </div>
 
       {/* ── Toast ─────────────────────────────────────────────────────────────── */}
@@ -302,7 +302,7 @@ export default function PreliminaryPage() {
       )}
 
       {/* ── Split pane ────────────────────────────────────────────────────────── */}
-      <section className="flex flex-col md:flex-row md:flex-1 md:gap-5 md:min-h-0 px-4 md:px-12 pb-20">
+      <section className="flex flex-col md:flex-row md:flex-1 md:gap-5 md:min-h-0 px-4 md:px-12 pb-28 md:pb-0">
 
         {/* ── Left: list ──────────────────────────────────────────────────────── */}
         <div className={`${isMobile && showDetail ? 'hidden' : 'flex'} md:flex w-full md:w-[320px] flex-shrink-0 flex-col md:h-full md:overflow-hidden`}>
@@ -349,7 +349,7 @@ export default function PreliminaryPage() {
                 <div key={demo.id} className="border-b border-outline-variant/20">
                 <div
                   className={`
-                    flex items-start gap-3 p-3 cursor-pointer transition-all
+                    flex items-start gap-2.5 px-3 py-2.5 cursor-pointer transition-all
                     ${isPreviewing && !isSelected
                       ? activeTrack === 'optimizer'
                         ? 'bg-surface-container-lowest border-l-2 border-secondary'
@@ -376,18 +376,22 @@ export default function PreliminaryPage() {
                     className="flex-1 min-w-0"
                     onClick={() => { setPreviewDemo(demo); if (isMobile) setShowDetail(true); }}
                   >
-                    <h3 className="font-headline text-base font-bold leading-snug line-clamp-2 text-on-surface mb-0.5">{demo.name}</h3>
-                    <p className="text-xs text-on-surface-variant/70 line-clamp-1 mb-1.5">{demo.summary}</p>
-                    <div className="flex items-center gap-1 flex-wrap">
-                      {keywords.map((kw, i) => (
-                        <span key={i} className={`text-xs px-1.5 py-0.5 rounded ${
-                          activeTrack === 'optimizer' ? 'bg-secondary/10 text-secondary' : 'bg-tertiary/10 text-tertiary'
-                        }`}>{kw}</span>
-                      ))}
-                      <span className="text-xs text-on-surface-variant/50 ml-auto">
+                    <div className="flex items-start justify-between gap-2 mb-0.5">
+                      <h3 className="font-headline text-sm font-bold leading-snug line-clamp-2 text-on-surface flex-1 min-w-0">{demo.name}</h3>
+                      <span className="text-xs text-on-surface-variant/50 flex-shrink-0 mt-0.5">
                         {demo.submitter1_name}{demo.submitter2_name ? ` +1` : ''}
                       </span>
                     </div>
+                    <p className="text-xs text-on-surface-variant/60 line-clamp-1 mb-1.5">{demo.summary}</p>
+                    {keywords.length > 0 && (
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {keywords.map((kw, i) => (
+                          <span key={i} className={`text-[11px] px-1.5 py-0.5 rounded ${
+                            activeTrack === 'optimizer' ? 'bg-secondary/10 text-secondary' : 'bg-tertiary/10 text-tertiary'
+                          }`}>{kw}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 </div>
@@ -534,7 +538,7 @@ export default function PreliminaryPage() {
       {/* ── Floating bottom bar · 手机全宽条 / 桌面胶囊 ─────────────────────── */}
 
       {/* 手机：全宽条，紧贴底部 Tab Bar 上方 */}
-      <div className={`md:hidden fixed bottom-[60px] inset-x-0 z-50 border-t px-4 py-2.5 flex items-center justify-between transition-all ${
+      <div style={{ bottom: 'calc(52px + env(safe-area-inset-bottom))' }} className={`md:hidden fixed inset-x-0 z-50 border-t px-4 py-2.5 flex items-center justify-between transition-all ${
         canSubmit
           ? 'bg-on-surface text-surface border-on-surface/20'
           : 'bg-surface-container/95 backdrop-blur-sm text-on-surface border-outline-variant/20'

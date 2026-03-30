@@ -41,6 +41,7 @@ export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }
 
   const showLeaderboard = siteConfig?.navLeaderboardVisible ?? true;
   const showPreliminary = siteConfig?.navPreliminaryVisible ?? false;
+  const showSubmitButton = siteConfig?.isSubmissionOpen ?? true;
 
   const NAV_ITEMS = useMemo(() => [
     { href: '/guide', label: t.nav.guide, icon: Compass },
@@ -200,7 +201,7 @@ export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }
 
         {/* Action Button - Submit or Login */}
         <div className="px-2 mb-4">
-          {!loading && (
+          {!loading && showSubmitButton && (
             <button
               onClick={handleActionClick}
               className={`w-full flex flex-col items-center justify-center gap-0.5 py-3 px-4 rounded-lg transition-all shadow-sm active:scale-95 ${
@@ -295,8 +296,8 @@ export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }
               );
             })}
 
-            {/* Center FAB */}
-            {!loading && (
+            {/* Center FAB — 海选页隐藏，避免与选择条重叠；提交关闭时隐藏 */}
+            {!loading && showSubmitButton && pathname !== '/preliminary' && (
               <button
                 onClick={handleActionClick}
                 className={`flex flex-col items-center justify-center gap-0.5 w-14 h-14 -mt-5 rounded-2xl shadow-lg active:scale-95 transition-all ${
