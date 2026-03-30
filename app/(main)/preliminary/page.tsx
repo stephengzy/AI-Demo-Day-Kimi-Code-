@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Loader2, CheckCircle, AlertCircle, Lock, CheckSquare, Square,
-  Trophy, BarChart2, ExternalLink, ChevronRight, ChevronLeft,
+  ExternalLink, ChevronRight, ChevronLeft,
 } from 'lucide-react';
 import useSWR from 'swr';
 import { useUser } from '@/lib/hooks/useUser';
@@ -36,16 +36,6 @@ interface PrelimState {
   submittedIds: number[];
 }
 
-interface ResultItem {
-  demo_id: number;
-  name: string;
-  track: 'optimizer' | 'builder';
-  submitter1_name: string;
-  submitter1_dept: string;
-  submitter2_name: string | null;
-  vote_count: number;
-}
-
 interface DemoLink { title: string; url: string; }
 
 const jsonFetcher = (url: string) => fetch(url).then(r => r.json());
@@ -74,74 +64,6 @@ function parseMediaUrls(v: string | string[] | null | undefined): string[] {
 }
 
 // ── Results view ───────────────────────────────────────────────────────────────
-function ResultsView() {
-  const { data, isLoading } = useSWR<{ results: ResultItem[]; totalVoters: number }>(
-    '/api/preliminary/results', jsonFetcher, { revalidateOnFocus: false }
-  );
-  if (isLoading) return (
-    <div className="flex items-center justify-center gap-3 py-16 text-on-surface-variant">
-      <Loader2 size={20} className="animate-spin" /><span>加载结果中...</span>
-    </div>
-  );
-  if (!data?.results) return <p className="py-8 text-center text-on-surface-variant">暂无结果</p>;
-
-  return (
-    <div className="space-y-6 px-4 md:px-12 pt-6">
-      <p className="text-sm text-on-surface-variant">
-        已提交人数：<span className="font-bold text-on-surface">{data.totalVoters}</span> 人
-      </p>
-      {(['optimizer', 'builder'] as const).map(track => {
-        const items = data.results.filter(r => r.track === track);
-        return (
-          <section key={track}>
-            <h3 className="font-headline font-bold text-base mb-3">
-              {track === 'optimizer' ? '⚡ Optimizer 赛道' : '🛠️ Builder 赛道'}
-            </h3>
-            <div className="overflow-x-auto">
-            <div className="rounded-xl border border-outline-variant/10 overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-surface-container-low/60">
-                  <tr>
-                    <th className="py-2 px-3 text-xs text-on-surface-variant font-medium text-center w-10">#</th>
-                    <th className="py-2 px-4 text-xs text-on-surface-variant font-medium text-left">项目</th>
-                    <th className="py-2 px-4 text-xs text-on-surface-variant font-medium text-left">作者</th>
-                    <th className="py-2 px-4 text-xs text-on-surface-variant font-medium text-right">票数</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/10">
-                  {items.length === 0
-                    ? <tr><td colSpan={4} className="py-6 text-center text-sm text-on-surface-variant">暂无数据</td></tr>
-                    : items.map((item, idx) => (
-                      <tr key={item.demo_id} className="hover:bg-surface-container-low/40 transition-colors">
-                        <td className="py-2 px-3 text-center">
-                          {idx < 3
-                            ? <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                                idx === 0 ? 'bg-yellow-500/20 text-yellow-700' :
-                                idx === 1 ? 'bg-gray-400/20 text-gray-600' :
-                                'bg-orange-600/20 text-orange-700'
-                              }`}>{idx + 1}</span>
-                            : <span className="text-xs text-on-surface-variant/40">{idx + 1}</span>
-                          }
-                        </td>
-                        <td className="py-2 px-4 font-medium text-on-surface text-sm">{item.name}</td>
-                        <td className="py-2 px-4 text-xs text-on-surface-variant">
-                          {item.submitter1_name}{item.submitter2_name ? ` / ${item.submitter2_name}` : ''}
-                        </td>
-                        <td className="py-2 px-4 text-right font-bold text-on-surface">{item.vote_count}</td>
-                      </tr>
-                    ))
-                  }
-                </tbody>
-              </table>
-            </div>
-            </div>
-          </section>
-        );
-      })}
-    </div>
-  );
-}
-
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function PreliminaryPage() {
   const router = useRouter();
@@ -174,8 +96,6 @@ export default function PreliminaryPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
-  const [showResults, setShowResults] = useState(false);
-
   useEffect(() => {
     if (message) { const t = setTimeout(() => setMessage(null), 4000); return () => clearTimeout(t); }
   }, [message]);
@@ -199,12 +119,31 @@ export default function PreliminaryPage() {
   );
 
   const handleToggle = useCallback((demoId: number) => {
+    if (!prelimData?.config) return;
+    const config = prelimData.config;
     setLocalSelections(prev => {
       const next = new Set(prev);
-      if (next.has(demoId)) next.delete(demoId); else next.add(demoId);
+      if (next.has(demoId)) {
+        next.delete(demoId);
+      } else {
+        // 检查是否超出限额
+        if (config.mode === 'A') {
+          if (next.size >= config.totalRequired) return prev;
+        } else {
+          const demo = shuffledDemos.find(d => d.id === demoId);
+          if (demo?.track === 'optimizer') {
+            const curOpt = [...next].filter(id => shuffledDemos.find(d => d.id === id)?.track === 'optimizer').length;
+            if (curOpt >= config.optimizerRequired) return prev;
+          } else if (demo?.track === 'builder') {
+            const curBld = [...next].filter(id => shuffledDemos.find(d => d.id === id)?.track === 'builder').length;
+            if (curBld >= config.builderRequired) return prev;
+          }
+        }
+        next.add(demoId);
+      }
       return next;
     });
-  }, []);
+  }, [prelimData, shuffledDemos]);
 
   const handleSubmit = useCallback(async () => {
     if (!prelimData?.config) return;
@@ -298,21 +237,12 @@ export default function PreliminaryPage() {
   const detail = previewDemo;
   const detailMediaUrls = parseMediaUrls(detail?.media_urls);
 
-  // ── Submitted / results view ──────────────────────────────────────────────────
-  if (submitted || showResults) {
+  // ── Submitted view ────────────────────────────────────────────────────────────
+  if (submitted) {
     return (
       <div className="flex flex-col md:h-[calc(100vh-60px)]">
-        <header className="flex-shrink-0 px-4 md:px-12 pt-4 pb-2 flex items-center justify-between">
+        <header className="flex-shrink-0 px-4 md:px-12 pt-4 pb-2">
           <h2 className="font-headline text-2xl md:text-4xl font-bold text-on-surface">海选投票</h2>
-          {config.canViewResults && (
-            <button
-              onClick={() => setShowResults(v => !v)}
-              className="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-lg text-sm hover:bg-surface-container-highest transition-colors"
-            >
-              {showResults ? <Trophy size={15} /> : <BarChart2 size={15} />}
-              {showResults ? '提交状态' : '查看结果'}
-            </button>
-          )}
         </header>
         {message && (
           <div className={`mx-4 md:mx-12 mb-4 p-3.5 rounded-xl flex items-center gap-3 text-sm ${
@@ -322,20 +252,15 @@ export default function PreliminaryPage() {
             <span className="font-medium">{message.text}</span>
           </div>
         )}
-        {showResults && config.canViewResults
-          ? <div className="flex-1 overflow-y-auto"><ResultsView /></div>
-          : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle size={32} className="text-secondary" />
-                </div>
-                <h3 className="font-headline text-2xl font-bold mb-2">海选已提交</h3>
-                <p className="text-on-surface-variant">感谢你的参与，结果将在活动结束后公布。</p>
-              </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle size={32} className="text-secondary" />
             </div>
-          )
-        }
+            <h3 className="font-headline text-2xl font-bold mb-2">海选已提交</h3>
+            <p className="text-on-surface-variant">感谢你的参与，结果将在周二晚间公布。</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -357,11 +282,6 @@ export default function PreliminaryPage() {
               <span className="ml-2 text-on-surface-variant/40">· 顺序随机</span>
             </p>
           </div>
-          {config.canViewResults && (
-            <button onClick={() => setShowResults(true)} className="hidden md:flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-lg text-sm hover:bg-surface-container-highest transition-colors">
-              <BarChart2 size={15} />查看结果
-            </button>
-          )}
         </div>
       </header>
 

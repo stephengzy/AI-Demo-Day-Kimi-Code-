@@ -26,7 +26,7 @@ export async function GET() {
   const { data: config, error } = await supabase
     .from('site_config')
     .select('*')
-    .in('key', ['voting_enabled', 'voting_notice', 'submission_enabled']) as { data: any[]; error: any };
+    .in('key', ['voting_enabled', 'voting_notice', 'submission_enabled', 'nav_leaderboard_visible', 'nav_preliminary_visible']) as { data: any[]; error: any };
 
   // 表不存在的错误
   if (error && error.code === '42P01') {
@@ -55,10 +55,16 @@ export async function GET() {
   // submission_enabled 默认为 true（未配置时视为开放）
   const isSubmissionOpen = configMap['submission_enabled'] !== 'false';
 
+  // 导航可见性配置（默认：leaderboard 显示，preliminary 隐藏）
+  const navLeaderboardVisible = configMap['nav_leaderboard_visible'] !== 'false';
+  const navPreliminaryVisible = configMap['nav_preliminary_visible'] === 'true';
+
   return NextResponse.json({
     isVotingOpen,
     isSubmissionOpen,
     notice,
+    navLeaderboardVisible,
+    navPreliminaryVisible,
   });
 }
 
@@ -69,7 +75,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '无权访问' }, { status: 403 });
   }
   
-  const { enabled, notice, submissionEnabled } = await request.json();
+  const { enabled, notice, submissionEnabled, navLeaderboardVisible, navPreliminaryVisible } = await request.json();
 
   const supabase = getSupabaseAdmin();
 
@@ -98,6 +104,14 @@ export async function POST(request: Request) {
 
   if (submissionEnabled !== undefined) {
     updates.push({ key: 'submission_enabled', value: submissionEnabled ? 'true' : 'false' });
+  }
+
+  if (navLeaderboardVisible !== undefined) {
+    updates.push({ key: 'nav_leaderboard_visible', value: navLeaderboardVisible ? 'true' : 'false' });
+  }
+
+  if (navPreliminaryVisible !== undefined) {
+    updates.push({ key: 'nav_preliminary_visible', value: navPreliminaryVisible ? 'true' : 'false' });
   }
   
   // 批量 upsert

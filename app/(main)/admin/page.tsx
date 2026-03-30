@@ -77,6 +77,21 @@ export default function AdminPage() {
   const [clearLoading, setClearLoading] = useState(false);
   const [clearVotesLoading, setClearVotesLoading] = useState(false);
 
+  // 海选结果
+  interface PrelimResultItem {
+    demo_id: number; name: string; track: string;
+    submitter1_name: string; submitter2_name: string | null; vote_count: number;
+  }
+  const [prelimResults, setPrelimResults] = useState<PrelimResultItem[] | null>(null);
+  const [prelimResultsTotal, setPrelimResultsTotal] = useState(0);
+  const [prelimResultsLoading, setPrelimResultsLoading] = useState(false);
+  const [showPrelimResults, setShowPrelimResults] = useState(false);
+
+  // 导航配置
+  const [navLeaderboardVisible, setNavLeaderboardVisible] = useState(true);
+  const [navPreliminaryVisible, setNavPreliminaryVisible] = useState(false);
+  const [navConfigLoading, setNavConfigLoading] = useState(false);
+
   // 海选投票配置
   const [prelimEnabled, setPrelimEnabled] = useState(false);
   const [prelimMode, setPrelimMode] = useState<'A' | 'B'>('A');
@@ -170,6 +185,8 @@ export default function AdminPage() {
       setSiteStatus(data);
       setEditingNotice(data.notice || '');
       setNeedsSetup(data.error === 'TABLE_NOT_FOUND');
+      setNavLeaderboardVisible(data.navLeaderboardVisible ?? true);
+      setNavPreliminaryVisible(data.navPreliminaryVisible ?? false);
     } catch (error) {
       console.error('Failed to load site status:', error);
     }
@@ -421,6 +438,71 @@ export default function AdminPage() {
       setResult({ type: 'error', message: '网络错误' });
     } finally {
       setClearPrelimLoading(false);
+    }
+  };
+
+  // 保存导航配置
+  const saveNavConfig = async (leaderboard: boolean, preliminary: boolean) => {
+    setNavConfigLoading(true);
+    try {
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ navLeaderboardVisible: leaderboard, navPreliminaryVisible: preliminary }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNavLeaderboardVisible(leaderboard);
+        setNavPreliminaryVisible(preliminary);
+        setResult({ type: 'success', message: '导航配置已更新' });
+      } else {
+        setResult({ type: 'error', message: data.error || '保存失败' });
+      }
+    } catch (error: any) {
+      setResult({ type: 'error', message: error.message });
+    } finally {
+      setNavConfigLoading(false);
+    }
+  };
+
+  // 加载海选结果
+  const loadPrelimResults = async () => {
+    setPrelimResultsLoading(true);
+    try {
+      const res = await fetch('/api/preliminary/results');
+      const data = await res.json();
+      if (res.ok) {
+        setPrelimResults(data.results || []);
+        setPrelimResultsTotal(data.totalVoters || 0);
+        setShowPrelimResults(true);
+      } else {
+        setResult({ type: 'error', message: data.error || '加载结果失败' });
+      }
+    } catch {
+      setResult({ type: 'error', message: '网络错误' });
+    } finally {
+      setPrelimResultsLoading(false);
+    }
+  };
+
+  // 生成海选测试投票数据
+  const [seedPrelimLoading, setSeedPrelimLoading] = useState(false);
+  const seedPrelimVotes = async () => {
+    if (!confirm('⚠️ 生成测试投票会为所有尚未投票的普通用户随机创建海选记录，导致他们无法再真实投票。\n\n此操作仅用于测试，请在真实投票开始前清空数据。确定继续？')) return;
+    setSeedPrelimLoading(true);
+    setResult(null);
+    try {
+      const res = await fetch('/api/preliminary/seed', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setResult({ type: 'success', message: data.message });
+      } else {
+        setResult({ type: 'error', message: data.error || '生成失败' });
+      }
+    } catch {
+      setResult({ type: 'error', message: '网络错误' });
+    } finally {
+      setSeedPrelimLoading(false);
     }
   };
 
@@ -893,6 +975,63 @@ export default function AdminPage() {
               </div>
             </section>
 
+            {/* ─── 导航配置 ─── */}
+            <section>
+              <h2 className="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
+                <LayoutGrid size={18} className="text-primary" />
+                侧边栏导航配置
+              </h2>
+              <div className="bg-surface-container-low rounded-xl border border-outline-variant/20 p-6 space-y-4">
+                <p className="text-xs text-on-surface-variant">控制侧边栏和手机底栏中的导航项显示/隐藏。</p>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Trophy size={18} className="text-on-surface-variant" />
+                    <div>
+                      <span className="font-medium text-on-surface text-sm">Demo 投票</span>
+                      <span className={`ml-2 text-xs font-medium ${navLeaderboardVisible ? 'text-secondary' : 'text-on-surface-variant'}`}>
+                        {navLeaderboardVisible ? '显示中' : '已隐藏'}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => saveNavConfig(!navLeaderboardVisible, navPreliminaryVisible)}
+                    disabled={navConfigLoading}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 disabled:opacity-50 ${
+                      navLeaderboardVisible
+                        ? 'bg-error/10 text-error border border-error/30 hover:bg-error/20'
+                        : 'bg-secondary text-on-secondary hover:opacity-90'
+                    }`}
+                  >
+                    {navConfigLoading ? <Loader2 size={14} className="animate-spin" /> : navLeaderboardVisible ? '隐藏' : '显示'}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Trophy size={18} className="text-on-surface-variant" />
+                    <div>
+                      <span className="font-medium text-on-surface text-sm">Demo 海选</span>
+                      <span className={`ml-2 text-xs font-medium ${navPreliminaryVisible ? 'text-secondary' : 'text-on-surface-variant'}`}>
+                        {navPreliminaryVisible ? '显示中' : '已隐藏'}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => saveNavConfig(navLeaderboardVisible, !navPreliminaryVisible)}
+                    disabled={navConfigLoading}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 disabled:opacity-50 ${
+                      navPreliminaryVisible
+                        ? 'bg-error/10 text-error border border-error/30 hover:bg-error/20'
+                        : 'bg-secondary text-on-secondary hover:opacity-90'
+                    }`}
+                  >
+                    {navConfigLoading ? <Loader2 size={14} className="animate-spin" /> : navPreliminaryVisible ? '隐藏' : '显示'}
+                  </button>
+                </div>
+              </div>
+            </section>
+
             {/* ─── 数据管理 ─── */}
             <section>
               <h2 className="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
@@ -948,6 +1087,83 @@ export default function AdminPage() {
                     清空所有数据
                   </button>
                 </div>
+              </div>
+            </section>
+
+            {/* ─── 海选结果 ─── */}
+            <section>
+              <h2 className="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
+                <Trophy size={18} className="text-primary" />
+                海选结果
+              </h2>
+              <div className="bg-surface-container-low rounded-xl border border-outline-variant/20 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-on-surface-variant">
+                    {showPrelimResults && prelimResults !== null
+                      ? `已提交人数：${prelimResultsTotal} 人，共 ${prelimResults.length} 个项目获得投票`
+                      : '点击右侧按钮加载最新结果'}
+                  </p>
+                  <button
+                    onClick={loadPrelimResults}
+                    disabled={prelimResultsLoading}
+                    className="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-medium hover:opacity-90 transition-colors flex items-center gap-2 disabled:opacity-50 flex-shrink-0"
+                  >
+                    {prelimResultsLoading ? <Loader2 size={14} className="animate-spin" /> : <Trophy size={14} />}
+                    {showPrelimResults ? '刷新结果' : '查看结果'}
+                  </button>
+                </div>
+
+                {showPrelimResults && prelimResults !== null && (
+                  <div className="space-y-4">
+                    {(['optimizer', 'builder'] as const).map(track => {
+                      const items = prelimResults.filter(r => r.track === track);
+                      if (items.length === 0) return null;
+                      return (
+                        <div key={track}>
+                          <h3 className="text-sm font-semibold text-on-surface mb-2">
+                            {track === 'optimizer' ? '⚡ Optimizer 赛道' : '🛠️ Builder 赛道'}
+                          </h3>
+                          <div className="rounded-xl border border-outline-variant/10 overflow-hidden">
+                            <table className="w-full">
+                              <thead className="bg-surface-container/60">
+                                <tr>
+                                  <th className="py-2 px-3 text-xs text-on-surface-variant font-medium text-center w-10">#</th>
+                                  <th className="py-2 px-4 text-xs text-on-surface-variant font-medium text-left">项目</th>
+                                  <th className="py-2 px-4 text-xs text-on-surface-variant font-medium text-left">作者</th>
+                                  <th className="py-2 px-4 text-xs text-on-surface-variant font-medium text-right">票数</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-outline-variant/10">
+                                {items.map((item, idx) => (
+                                  <tr key={item.demo_id} className="hover:bg-surface-container/40 transition-colors">
+                                    <td className="py-2 px-3 text-center">
+                                      {idx < 3
+                                        ? <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                                            idx === 0 ? 'bg-yellow-500/20 text-yellow-700' :
+                                            idx === 1 ? 'bg-gray-400/20 text-gray-600' :
+                                            'bg-orange-600/20 text-orange-700'
+                                          }`}>{idx + 1}</span>
+                                        : <span className="text-xs text-on-surface-variant/40">{idx + 1}</span>
+                                      }
+                                    </td>
+                                    <td className="py-2 px-4 font-medium text-on-surface text-sm">{item.name}</td>
+                                    <td className="py-2 px-4 text-xs text-on-surface-variant">
+                                      {item.submitter1_name}{item.submitter2_name ? ` / ${item.submitter2_name}` : ''}
+                                    </td>
+                                    <td className="py-2 px-4 text-right font-bold text-on-surface">{item.vote_count}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {prelimResults.length === 0 && (
+                      <p className="text-sm text-on-surface-variant text-center py-4">暂无投票数据</p>
+                    )}
+                  </div>
+                )}
               </div>
             </section>
 
@@ -1088,15 +1304,25 @@ export default function AdminPage() {
                   </div>
 
                   {/* Save */}
-                  <div className="flex items-center justify-between pt-2">
-                    <button
-                      onClick={clearPrelimVotes}
-                      disabled={clearPrelimLoading}
-                      className="px-4 py-2 bg-error/10 text-error border border-error/30 rounded-lg text-sm font-medium hover:bg-error/20 transition-colors flex items-center gap-2 disabled:opacity-50"
-                    >
-                      {clearPrelimLoading ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                      清空海选投票记录
-                    </button>
+                  <div className="flex items-center justify-between pt-2 flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={seedPrelimVotes}
+                        disabled={seedPrelimLoading}
+                        className="px-4 py-2 bg-primary/10 text-primary border border-primary/30 rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {seedPrelimLoading ? <Loader2 size={14} className="animate-spin" /> : <PlusCircle size={14} />}
+                        生成测试投票
+                      </button>
+                      <button
+                        onClick={clearPrelimVotes}
+                        disabled={clearPrelimLoading}
+                        className="px-4 py-2 bg-error/10 text-error border border-error/30 rounded-lg text-sm font-medium hover:bg-error/20 transition-colors flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {clearPrelimLoading ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                        清空海选投票
+                      </button>
+                    </div>
                     <button
                       onClick={savePrelimConfig}
                       disabled={prelimLoading}

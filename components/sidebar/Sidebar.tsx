@@ -2,10 +2,13 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Compass, LayoutGrid, Trophy, MessageSquare, Plus, LogIn, LogOut, FolderOpen, UserCircle, X } from 'lucide-react';
+import { Compass, LayoutGrid, Trophy, MessageSquare, Plus, LogIn, LogOut, FolderOpen, UserCircle, X, ListChecks } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageProvider';
 import { useUser } from '@/lib/hooks/useUser';
-import { useState, useEffect, useCallback } from 'react';
+import useSWR from 'swr';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+
+const configFetcher = (url: string) => fetch(url).then(r => r.json());
 
 const DEADLINE = new Date('2026-03-30T04:00:00Z');
 
@@ -34,14 +37,19 @@ export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }
   const { t } = useLanguage();
   const countdown = useCountdown();
   const [showProfile, setShowProfile] = useState(false);
+  const { data: siteConfig } = useSWR('/api/config', configFetcher, { revalidateOnFocus: false });
 
-  const NAV_ITEMS = [
+  const showLeaderboard = siteConfig?.navLeaderboardVisible ?? true;
+  const showPreliminary = siteConfig?.navPreliminaryVisible ?? false;
+
+  const NAV_ITEMS = useMemo(() => [
     { href: '/guide', label: t.nav.guide, icon: Compass },
     { href: '/gallery', label: t.nav.gallery, icon: LayoutGrid },
-    { href: '/leaderboard', label: t.nav.leaderboard, icon: Trophy },
+    ...(showLeaderboard ? [{ href: '/leaderboard', label: t.nav.leaderboard, icon: Trophy }] : []),
+    ...(showPreliminary ? [{ href: '/preliminary', label: t.nav.preliminary, icon: ListChecks }] : []),
     ...(user ? [{ href: '/my-demos', label: t.nav.myDemos, icon: FolderOpen }] : []),
     { href: '/square', label: t.nav.square, icon: MessageSquare },
-  ];
+  ], [showLeaderboard, showPreliminary, user, t]);
 
   const handleActionClick = () => {
     if (user) {
@@ -254,15 +262,18 @@ export default function Sidebar({ onSubmitClick }: { onSubmitClick: () => void }
 
       {/* ── Mobile Bottom Tab Bar ── */}
       {(() => {
-        // 手机底栏固定 4 个导航项（不含 My Demos），中央放 FAB
-        const MOBILE_NAV = [
-          { href: '/guide',       label: t.nav.guide,       icon: Compass },
-          { href: '/gallery',     label: t.nav.gallery,     icon: LayoutGrid },
-          { href: '/leaderboard', label: t.nav.leaderboard, icon: Trophy },
-          { href: '/square',      label: t.nav.square,      icon: MessageSquare },
+        // 手机底栏：左侧固定 guide + gallery，右侧根据配置动态显示投票/海选 + square
+        const MOBILE_NAV_RIGHT = [
+          ...(showLeaderboard ? [{ href: '/leaderboard', label: t.nav.leaderboard, icon: Trophy }] : []),
+          ...(showPreliminary ? [{ href: '/preliminary', label: t.nav.preliminary, icon: ListChecks }] : []),
+          ...(!showLeaderboard && !showPreliminary ? [{ href: '/leaderboard', label: t.nav.leaderboard, icon: Trophy }] : []),
+          { href: '/square', label: t.nav.square, icon: MessageSquare },
+        ].slice(0, 2); // 右侧最多显示 2 个
+        const leftNav = [
+          { href: '/guide',   label: t.nav.guide,   icon: Compass },
+          { href: '/gallery', label: t.nav.gallery, icon: LayoutGrid },
         ];
-        const leftNav  = MOBILE_NAV.slice(0, 2);
-        const rightNav = MOBILE_NAV.slice(2);
+        const rightNav = MOBILE_NAV_RIGHT;
 
         return (
           <nav className="fixed bottom-0 inset-x-0 md:hidden z-50 bg-[#f3f4ee] border-t border-outline-variant/20 flex items-center justify-around px-2 pt-1 pb-1 safe-area-pb">
