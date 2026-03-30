@@ -76,6 +76,7 @@ export default function AdminPage() {
   const [seedLoading, setSeedLoading] = useState(false);
   const [clearLoading, setClearLoading] = useState(false);
   const [clearVotesLoading, setClearVotesLoading] = useState(false);
+  const [seedVotesLoading, setSeedVotesLoading] = useState(false);
 
   // 海选结果
   interface PrelimResultItem {
@@ -91,6 +92,9 @@ export default function AdminPage() {
   const [navLeaderboardVisible, setNavLeaderboardVisible] = useState(true);
   const [navPreliminaryVisible, setNavPreliminaryVisible] = useState(false);
   const [navConfigLoading, setNavConfigLoading] = useState(false);
+  // 投票结果可见性
+  const [leaderboardResultsVisible, setLeaderboardResultsVisible] = useState(false);
+  const [resultsVisibleLoading, setResultsVisibleLoading] = useState(false);
 
   // 加票管理
   interface BonusVoteEntry { demo_id: number; vote_type: string; bonus: number; }
@@ -113,6 +117,7 @@ export default function AdminPage() {
   const [prelimRoles, setPrelimRoles] = useState<string[]>(['admin']);
   const [prelimNotice, setPrelimNotice] = useState('');
   const [prelimLoading, setPrelimLoading] = useState(false);
+  const [prelimToggleLoading, setPrelimToggleLoading] = useState(false);
   const [clearPrelimLoading, setClearPrelimLoading] = useState(false);
 
   // 验证权限
@@ -199,6 +204,7 @@ export default function AdminPage() {
       setNeedsSetup(data.error === 'TABLE_NOT_FOUND');
       setNavLeaderboardVisible(data.navLeaderboardVisible ?? true);
       setNavPreliminaryVisible(data.navPreliminaryVisible ?? false);
+      setLeaderboardResultsVisible(data.leaderboardResultsVisible ?? false);
     } catch (error) {
       console.error('Failed to load site status:', error);
     }
@@ -387,6 +393,26 @@ export default function AdminPage() {
     }
   }
 
+  // 生成测试投票（Demo投票，非海选）
+  async function seedVotes() {
+    if (!confirm('为所有尚未投票的用户随机生成投票记录？\n\n⚠️ 已有投票的用户不会受影响。')) return;
+    setSeedVotesLoading(true);
+    setResult(null);
+    try {
+      const res = await fetch('/api/admin/votes/seed', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setResult({ type: 'success', message: data.message });
+      } else {
+        setResult({ type: 'error', message: data.error || '生成失败' });
+      }
+    } catch {
+      setResult({ type: 'error', message: '网络错误' });
+    } finally {
+      setSeedVotesLoading(false);
+    }
+  }
+
   // 清理所有数据
   async function clearTestData() {
     if (!confirm('确定要删除所有数据吗？\n\n⚠️ 这将清空所有项目、投票和留言，不可恢复！')) return;
@@ -408,6 +434,29 @@ export default function AdminPage() {
   }
 
   // 保存海选配置
+  // 单独切换海选开关（立即保存，不依赖"保存配置"按钮）
+  const togglePrelimEnabled = async (enabled: boolean) => {
+    setPrelimToggleLoading(true);
+    try {
+      const res = await fetch('/api/preliminary/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPrelimEnabled(enabled);
+        setResult({ type: 'success', message: enabled ? '✅ 海选投票已开放' : '🔒 海选投票已关闭' });
+      } else {
+        setResult({ type: 'error', message: data.error || '保存失败' });
+      }
+    } catch (error: any) {
+      setResult({ type: 'error', message: error.message });
+    } finally {
+      setPrelimToggleLoading(false);
+    }
+  };
+
   const savePrelimConfig = async () => {
     setPrelimLoading(true);
     try {
@@ -477,6 +526,29 @@ export default function AdminPage() {
       setResult({ type: 'error', message: error.message });
     } finally {
       setNavConfigLoading(false);
+    }
+  };
+
+  // 切换投票结果可见性
+  const toggleResultsVisible = async (visible: boolean) => {
+    setResultsVisibleLoading(true);
+    try {
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leaderboardResultsVisible: visible }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLeaderboardResultsVisible(visible);
+        setResult({ type: 'success', message: visible ? '✅ 投票结果已对外公开' : '🔒 投票结果已隐藏' });
+      } else {
+        setResult({ type: 'error', message: data.error || '保存失败' });
+      }
+    } catch (error: any) {
+      setResult({ type: 'error', message: error.message });
+    } finally {
+      setResultsVisibleLoading(false);
     }
   };
 
@@ -1105,6 +1177,38 @@ export default function AdminPage() {
               </div>
             </section>
 
+            {/* ─── 投票结果公开 ─── */}
+            <section>
+              <h2 className="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
+                <Trophy size={18} className="text-primary" />
+                投票结果
+              </h2>
+              <div className="bg-surface-container-low rounded-xl border border-outline-variant/20 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="font-medium text-on-surface text-sm">对外公开排名结果</span>
+                    <span className="text-xs text-on-surface-variant mt-0.5">
+                      开启后，所有用户可在 Demo 投票页看到实时排名和票数
+                    </span>
+                    <span className={`text-xs font-medium mt-1 ${leaderboardResultsVisible ? 'text-secondary' : 'text-on-surface-variant'}`}>
+                      当前：{leaderboardResultsVisible ? '✅ 已公开' : '🔒 隐藏中'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => toggleResultsVisible(!leaderboardResultsVisible)}
+                    disabled={resultsVisibleLoading}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 ${
+                      leaderboardResultsVisible
+                        ? 'bg-error/10 text-error border border-error/30 hover:bg-error/20'
+                        : 'bg-secondary text-on-secondary hover:opacity-90'
+                    }`}
+                  >
+                    {resultsVisibleLoading ? <Loader2 size={14} className="animate-spin" /> : leaderboardResultsVisible ? '隐藏结果' : '公开结果'}
+                  </button>
+                </div>
+              </div>
+            </section>
+
             {/* ─── 加票管理 ─── */}
             <section>
               <h2 className="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
@@ -1256,20 +1360,30 @@ export default function AdminPage() {
                   </button>
                 </div>
 
-                {/* 清空投票 */}
-                <div className="bg-surface-container-low rounded-xl border border-error/20 p-6">
-                  <h3 className="font-semibold text-on-surface mb-1">清空所有投票</h3>
-                  <p className="text-xs text-on-surface-variant mb-4">
-                    仅清除投票记录，保留 Demo 项目和留言数据。不可恢复。
+                {/* 生成 + 清空投票 */}
+                <div className="bg-surface-container-low rounded-xl border border-outline-variant/20 p-6 space-y-3">
+                  <h3 className="font-semibold text-on-surface mb-1">Demo 投票测试数据</h3>
+                  <p className="text-xs text-on-surface-variant">
+                    为尚未投票的用户随机生成测试投票记录（5 个奖项），或清空所有投票记录。与海选投票相互独立。
                   </p>
-                  <button
-                    onClick={clearAllVotes}
-                    disabled={clearVotesLoading}
-                    className="w-full py-2.5 bg-error/10 text-error border border-error/30 rounded-lg text-sm font-medium hover:bg-error/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {clearVotesLoading ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                    清空投票记录
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={seedVotes}
+                      disabled={seedVotesLoading}
+                      className="flex-1 py-2.5 bg-primary/10 text-primary border border-primary/30 rounded-lg text-sm font-medium hover:bg-primary/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {seedVotesLoading ? <Loader2 size={14} className="animate-spin" /> : <PlusCircle size={14} />}
+                      生成测试投票
+                    </button>
+                    <button
+                      onClick={clearAllVotes}
+                      disabled={clearVotesLoading}
+                      className="flex-1 py-2.5 bg-error/10 text-error border border-error/30 rounded-lg text-sm font-medium hover:bg-error/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {clearVotesLoading ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                      清空投票记录
+                    </button>
+                  </div>
                 </div>
 
                 {/* 清理所有数据 */}
@@ -1384,14 +1498,18 @@ export default function AdminPage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => setPrelimEnabled(v => !v)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all active:scale-95 ${
+                    onClick={() => togglePrelimEnabled(!prelimEnabled)}
+                    disabled={prelimToggleLoading}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50 ${
                       prelimEnabled
                         ? 'bg-error text-on-error hover:opacity-90'
                         : 'bg-secondary text-on-secondary hover:opacity-90'
                     }`}
                   >
-                    {prelimEnabled ? <><Lock size={14} />关闭</> : <><Unlock size={14} />开放</>}
+                    {prelimToggleLoading
+                      ? <Loader2 size={14} className="animate-spin" />
+                      : prelimEnabled ? <><Lock size={14} />关闭</> : <><Unlock size={14} />开放</>
+                    }
                   </button>
                 </div>
 

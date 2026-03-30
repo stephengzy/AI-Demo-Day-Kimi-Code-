@@ -322,7 +322,7 @@ export default function LeaderboardPage() {
       <header className="flex-shrink-0 px-4 md:px-12 pt-4 pb-2">
         <h2 className="font-headline text-2xl md:text-4xl font-bold text-on-surface">Demo Leaderboard</h2>
         <p className="text-sm text-on-surface-variant mt-0.5">
-          最佳Demo各赛道 {BEST_DEMO_AWARDS.best_optimizer.maxVotes} 票 · 专项奖 1 票 · 评委权重 ×2 · 投后不可修改
+          最佳Demo各赛道 {BEST_DEMO_AWARDS.best_optimizer.maxVotes} 票 · 专项奖 1 票 · 投后不可修改{showResults ? '' : ' · 结果待公布'}
         </p>
       </header>
 
@@ -569,7 +569,7 @@ export default function LeaderboardPage() {
                             : 'bg-surface-container text-on-surface-variant/60'
                         }`}>
                           #{rankMap.get(previewItem.id)}
-                          {showResults && <span className="ml-1 font-normal opacity-70">{previewItem.vote_count} 票</span>}
+                          {showResults && <span className="ml-1 font-normal opacity-70">{previewItem.score} 票</span>}
                         </span>
                       )}
                     </div>

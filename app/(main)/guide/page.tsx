@@ -144,7 +144,7 @@ export default function GuidePage() {
           <div className="flex-1 px-5 py-4">
             <p className="text-xs font-bold text-outline/60 uppercase tracking-wider mb-2">地点</p>
             <p className="text-sm text-on-surface font-medium leading-relaxed">
-              上海 LuOne · 35F 西郊<br />
+              LuOne30F-复兴中路<br />
               北京中海国际大厦 B座12AF-B12AH03
             </p>
           </div>
