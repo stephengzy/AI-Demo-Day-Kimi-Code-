@@ -8,7 +8,12 @@ export interface BonusVoteEntry {
   bonus: number;
 }
 
-async function getAdminUser() {
+interface UserWithRole {
+  id: number;
+  role: string;
+}
+
+async function getAdminUser(): Promise<UserWithRole | null> {
   const cookieStore = await cookies();
   const userId = cookieStore.get('demo_day_user')?.value;
   if (!userId) return null;
@@ -18,7 +23,7 @@ async function getAdminUser() {
     .select('id, role')
     .eq('id', parseInt(userId))
     .single();
-  return data?.role === 'admin' ? data : null;
+  return (data as UserWithRole | null)?.role === 'admin' ? (data as UserWithRole) : null;
 }
 
 export async function GET() {
