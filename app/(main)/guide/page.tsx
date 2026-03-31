@@ -287,40 +287,50 @@ export default function GuidePage() {
               ? <span className={`w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-md text-xs font-bold tabular-nums ${color === 'secondary' ? 'bg-secondary/10 text-secondary' : 'bg-tertiary/10 text-tertiary'}`}>{item.index}</span>
               : <span className="flex-shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-outline/10 text-on-surface-variant whitespace-nowrap">跨组</span>;
 
-            const label = isSpecial && (
-              <span className="text-xs text-on-surface-variant/40 flex-shrink-0">{crossLabel}</span>
-            );
-
             if (item.name === '待公示') {
               return (
                 <div className={base}>
                   {badge}
                   <span className="text-sm flex-1 min-w-0 text-outline/40 italic truncate">待公示</span>
-                  {label}
                 </div>
               );
             }
-            // DI/投研优秀项目展示（跨组项目）不设置链接跳转
+            // DI/投研优秀项目展示（跨组项目）不设置 gallery 链接
             const isCrossGroup = item.type === 'cross';
+            const trackColor = color === 'secondary';
             return (
               <div className={base}>
                 {badge}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 overflow-hidden">
                   {isCrossGroup ? (
                     <span className="text-sm block text-on-surface font-medium truncate">{item.name}</span>
                   ) : (
-                    <Link 
+                    <Link
                       href={`/gallery?q=${encodeURIComponent(item.name)}`}
                       className="text-sm block text-on-surface font-medium truncate hover:text-primary hover:underline transition-colors"
                     >
                       {item.name}
                     </Link>
                   )}
-                  {item.submitter && (
-                    <span className="text-xs text-on-surface-variant/60 block mt-0.5">{item.submitter}</span>
-                  )}
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    {item.submitter && (
+                      <span className="text-xs text-on-surface-variant/60 truncate">{item.submitter}</span>
+                    )}
+                    {isCrossGroup && (
+                      <span className="text-xs text-on-surface-variant/35 flex-shrink-0">{crossLabel}</span>
+                    )}
+                  </div>
                 </div>
-                {label}
+                <Link
+                  href={`/square?demo=${encodeURIComponent(item.name)}`}
+                  className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors ${
+                    trackColor
+                      ? 'text-secondary bg-secondary/8 hover:bg-secondary/15 active:bg-secondary/20'
+                      : 'text-tertiary bg-tertiary/8 hover:bg-tertiary/15 active:bg-tertiary/20'
+                  }`}
+                >
+                  提问
+                </Link>
               </div>
             );
           }

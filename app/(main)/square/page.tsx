@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowUp, AlertCircle, Trash2, Search, X, ChevronDown } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { useUser } from '@/lib/hooks/useUser';
 import { OPTIMIZER_ORDER, BUILDER_ORDER } from '@/lib/demo-order';
@@ -310,14 +310,21 @@ function FilterDropdown({
 ───────────────────────────────────────────── */
 export default function SquarePage() {
   const { user } = useUser();
+  const searchParams = useSearchParams();
   const { data: messages = [], mutate: mutateMessages, isLoading: loading } = useSWR<Message[]>(
     '/api/messages',
     messagesFetcher,
     { revalidateOnFocus: false, dedupingInterval: 10000 }
   );
 
+  const allDemoNames = [...OPTIMIZER_DEMOS, ...BUILDER_DEMOS].map(d => d.name);
+  const initDemo = (() => {
+    const p = searchParams.get('demo');
+    return p && allDemoNames.includes(p) ? p : '';
+  })();
+
   const [question, setQuestion]         = useState('');
-  const [selectedDemo, setSelectedDemo] = useState('');
+  const [selectedDemo, setSelectedDemo] = useState(initDemo);
   const [pickerOpen, setPickerOpen]     = useState(false);
   const [submitting, setSubmitting]     = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);

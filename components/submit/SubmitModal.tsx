@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { CheckCircle, Zap, Hammer, X, Upload, Plus, FileImage, FileVideo, Trash2, ExternalLink } from 'lucide-react';
+import { CheckCircle, Zap, Hammer, X, Upload, Plus, FileImage, FileVideo, Trash2, ExternalLink, AlertCircle } from 'lucide-react';
+import useSWR from 'swr';
 
 interface DemoLink { title: string; url: string; }
 import { pinyin } from 'pinyin-pro';
@@ -42,6 +43,8 @@ function useCountdown() {
 export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps) {
   const { user } = useUser();
   const countdown = useCountdown();
+  const { data: siteConfig } = useSWR('/api/config', (url: string) => fetch(url).then(r => r.json()), { revalidateOnFocus: false });
+  const isSubmissionOpen = siteConfig?.isSubmissionOpen !== false;
   const [form, setForm] = useState({
     name: '',
     summary: '',
@@ -382,6 +385,14 @@ export default function SubmitModal({ onClose, initialTrack }: SubmitModalProps)
 
         {/* Right Form */}
         <div className="flex-1 px-4 md:px-10 pb-20 md:pb-10 pt-16 md:pt-[84px] overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(var(--outline-rgb), 0.4) transparent' }}>
+
+          {/* 提交关闭提醒 */}
+          {!isSubmissionOpen && (
+            <div className="mb-6 flex items-start gap-3 px-4 py-3.5 rounded-xl bg-error/8 border border-error/20 text-error">
+              <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+              <p className="text-sm font-medium leading-snug">Demo 提交已截止</p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-12">
             {/* 1. Choose Your Track - 先选赛道 */}
