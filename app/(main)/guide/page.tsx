@@ -1,5 +1,94 @@
 'use client';
 
+import { OPTIMIZER_ORDER, BUILDER_ORDER } from '@/lib/demo-order';
+import Link from 'next/link';
+
+type OrderItem =
+  | { type: 'regular'; index: number; name: string; submitter: string }
+  | { type: 'cross'; name: string; submitter: string };
+
+// 项目名称到提交人信息的映射（根据海选结果真实数据）
+const SUBMITTER_MAP: Record<string, string> = {
+  // Optimizer 正赛项目（前15名）
+  '搜索掘金searchinsights': '北星（社区战略组）',
+  'AI Daily Digest': '宗棠（技术战略组）',
+  '投研助手-电子小林虾': '小林（战略研究中台）',
+  '财报哨兵': '罗尼（战略研究中台）',
+  '用户onepage制作': '奇爱（用户研究二组）',
+  'Podcast brief': '甘雨（技术战略组）',
+  'AI dashboard': '白野（战略研究中台）',
+  'AI research thinking partner': '观澜（技术战略组）',
+  '再也不想打开dayQ了': '牧真（技术战略组）',
+  '小红书上的男人在做什么': '黄风（社区战略组）',
+  '问卷审核Skill': '登登（用户研究二组）',
+  '用研知识库LR': '世良（用户研究二组）',
+  '小鹿AI': '鹿鸣（科技投资）',
+  '抖音新星捕捞器': '黄风（社区战略组）',
+  '问卷数据处理': '樱桃（用户研究一组）',
+  // Optimizer 校招展示（已移除）
+  // Optimizer 跨组展示 (DI优秀项目展示)
+  '赛博秘书': '阿席（技术战略组）',
+  '赛博秘书- 让Agent帮你管理任务': '阿席（技术战略组）',
+  'AB实验分析AI化': '亚克（平台分析组）',
+  '电商治理分析AI化': '秉义（交易分析二组）',
+  'Mio 广告AI诊断': '明玉（商业分析二组）',
+  
+  // Builder 正赛项目（前15名）
+  'Expeditions | Your travel stories': '初一（社区战略组）+也英（社区战略组）',
+  'Pensieve : Your Exclusive biographer': '阿瑟（社区战略组）+高斯（社区战略组）',
+  '三张地图': '维勒（用户研究一组）+阿列（用户研究一组）',
+  'AI Demo Day网站': '恒宇（社区战略组）+阿瑟（社区战略组）',
+  '展览体温计 — 看展的真实评价，一眼可见': '璃茉（hi lab战略组）',
+  'Project Spark': '也英（社区战略组）+杰特（社区战略组）',
+  'Project Lumière': '莉露（用户研究一组）+米法（用户研究一组）',
+  'ootd': '阿亚（用户研究二组）+龙树（战略研究中台）',
+  '麻将"作弊"器': '一鹏（科技投资）',
+  '智能体笔记——小红书的第四种内容形式': '二千（用户研究一组）',
+  'Soul Mirror': '七里（社区战略组）+阿瑟（社区战略组）',
+  '魔法薯': '优午（用户研究二组）+奇爱（用户研究二组）',
+  '为你私藏的微光「角落」': '艾博（hi lab战略组）',
+  '懂你的好物推荐卡': '拾七（交易战略组）',
+  'Notes2Skill': '阿席（技术战略组）',
+  '土拨鼠信箱 — 把话埋进土里，等它长出花来': '璃茉（hi lab战略组）',
+  // Builder 校招展示（已移除）
+  // Builder 跨组展示 (财务投资优秀项目展示)
+  '星盘': '宫二（增长采购组）',
+  'Org Snowball': '菲雅（投资研究）',
+  'People Finder': '灵筠（投资研究）',
+};
+
+function getSubmitter(name: string): string {
+  if (SUBMITTER_MAP[name]) return SUBMITTER_MAP[name];
+  // 部分匹配
+  for (const [key, value] of Object.entries(SUBMITTER_MAP)) {
+    if (name.includes(key) || key.includes(name)) return value;
+  }
+  return '';
+}
+
+function makeOrder(names: string[]): OrderItem[] {
+  const items: OrderItem[] = [];
+  for (let i = 0; i < 15; i++) {
+    items.push({ 
+      type: 'regular', 
+      index: i + 1, 
+      name: names[i] ?? '待公示',
+      submitter: getSubmitter(names[i] ?? '')
+    });
+  }
+  // 校招生特别展示已移除
+  for (let i = 15; i <= 17; i++) {
+    items.push({ 
+      type: 'cross', 
+      name: names[i] ?? '待公示',
+      submitter: getSubmitter(names[i] ?? '')
+    });
+  }
+  return items;
+}
+
+const optimizerOrder = makeOrder(OPTIMIZER_ORDER);
+const builderOrder   = makeOrder(BUILDER_ORDER);
 export default function GuidePage() {
   const timeline = [
     { date: '3月26日', day: '周四', time: '12:00', title: '报名通道开启', highlight: false },
@@ -10,10 +99,10 @@ export default function GuidePage() {
 
   const agenda = [
     { time: '13:30 – 13:45', title: '开场白', title2: '& 规则介绍', sub1: null, sub2: null, track: null },
-    { time: '13:45 起', title: 'Optimizer', title2: '赛道路演', sub1: '约 2–2.5 小时', sub2: null, track: 'optimizer' },
+    { time: '13:45 起', title: 'Optimizer', title2: '赛道路演', sub1: '约 2.5 小时', sub2: null, track: 'optimizer' },
     { time: '中场', title: '茶歇', title2: null, sub1: null, sub2: null, track: null },
-    { time: '接续', title: 'Builder', title2: '赛道路演', sub1: '约 2–2.5 小时', sub2: null, track: 'builder' },
-    { time: '18:45–19:00', title: '结语', title2: '& 评奖', sub1: null, sub2: null, track: null },
+    { time: '接续', title: 'Builder', title2: '赛道路演', sub1: '约 2.5 小时', sub2: null, track: 'builder' },
+    { time: '', title: '结语 & 评奖', title2: null, sub1: '25分钟', sub2: null, track: null },
   ];
 
   function openSubmit(track: 'optimizer' | 'builder') {
@@ -194,6 +283,114 @@ export default function GuidePage() {
           ))}
         </div>
       </section>
+
+      {/* ── 路演顺序 ── */}
+      <section className="mb-12">
+        <SectionTitle>路演顺序</SectionTitle>
+        <p className="text-sm text-on-surface-variant mb-2">
+          以下为当天路演出场顺序，每个 Demo <span className="font-semibold text-on-surface">5 分钟展演 + 2 分钟 QA</span>。
+        </p>
+        <p className="text-xs text-on-surface-variant/60 mb-6 italic">
+          顺序随机，不分先后
+        </p>
+
+        {(() => {
+          const tracks = [
+            { key: 'optimizer', icon: '⚡', label: 'Optimizer 赛道', color: 'secondary' as const, items: optimizerOrder, crossLabel: 'DI优秀项目展示' },
+            { key: 'builder',   icon: '🛠️', label: 'Builder 赛道',   color: 'tertiary'  as const, items: builderOrder,   crossLabel: '财务投资优秀项目展示' },
+          ];
+
+          function renderItem(item: OrderItem, color: 'secondary' | 'tertiary', crossLabel: string, isLast: boolean) {
+            const isSpecial = item.type !== 'regular';
+            const sideBorder = color === 'secondary' ? 'border-x border-secondary/[0.12]' : 'border-x border-tertiary/[0.12]';
+            const btmBorder  = color === 'secondary' ? 'border-b border-secondary/[0.12]'  : 'border-b border-tertiary/[0.12]';
+            const rowLine    = !isLast ? 'border-b border-outline-variant/[0.08]' : btmBorder;
+            const rounded    = isLast ? 'rounded-b-xl' : '';
+            const base = `flex items-center gap-3 px-4 py-2.5 bg-surface-container-low ${sideBorder} ${rowLine} ${rounded}`;
+
+            const badge = item.type === 'regular'
+              ? <span className={`w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-md text-xs font-bold tabular-nums ${color === 'secondary' ? 'bg-secondary/10 text-secondary' : 'bg-tertiary/10 text-tertiary'}`}>{item.index}</span>
+              : <span className="flex-shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-outline/10 text-on-surface-variant whitespace-nowrap">跨组</span>;
+
+            const label = isSpecial && (
+              <span className="text-xs text-on-surface-variant/40 flex-shrink-0">{crossLabel}</span>
+            );
+
+            if (item.name === '待公示') {
+              return (
+                <div className={base}>
+                  {badge}
+                  <span className="text-sm flex-1 min-w-0 text-outline/40 italic truncate">待公示</span>
+                  {label}
+                </div>
+              );
+            }
+            // DI/投研优秀项目展示（跨组项目）不设置链接跳转
+            const isCrossGroup = item.type === 'cross';
+            return (
+              <div className={base}>
+                {badge}
+                <div className="flex-1 min-w-0">
+                  {isCrossGroup ? (
+                    <span className="text-sm block text-on-surface font-medium truncate">{item.name}</span>
+                  ) : (
+                    <Link 
+                      href={`/gallery?q=${encodeURIComponent(item.name)}`}
+                      className="text-sm block text-on-surface font-medium truncate hover:text-primary hover:underline transition-colors"
+                    >
+                      {item.name}
+                    </Link>
+                  )}
+                  {item.submitter && (
+                    <span className="text-xs text-on-surface-variant/60 block mt-0.5">{item.submitter}</span>
+                  )}
+                </div>
+                {label}
+              </div>
+            );
+          }
+
+          return (
+            <>
+              {/* ── 手机：上下堆叠 ── */}
+              <div className="md:hidden space-y-4">
+                {tracks.map(({ key, icon, label, color, items, crossLabel }) => (
+                  <div key={key}>
+                    <div className={`rounded-t-xl px-5 py-3.5 flex items-center gap-2 ${color === 'secondary' ? 'bg-secondary text-on-secondary' : 'bg-tertiary text-on-tertiary'}`}>
+                      <span className="text-base">{icon}</span>
+                      <span className="font-headline font-bold text-base">{label}</span>
+                    </div>
+                    {items.map((item, idx) => (
+                      <div key={idx}>{renderItem(item, color, crossLabel, idx === items.length - 1)}</div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              {/* ── 桌面：双列交错 ── */}
+              <div className="hidden md:grid grid-cols-2 gap-x-5">
+                {/* 列头 */}
+                {tracks.map(({ key, icon, label, color }) => (
+                  <div key={key} className={`rounded-t-xl px-5 py-3.5 flex items-center gap-2 ${color === 'secondary' ? 'bg-secondary text-on-secondary' : 'bg-tertiary text-on-tertiary'}`}>
+                    <span className="text-base">{icon}</span>
+                    <span className="font-headline font-bold text-base">{label}</span>
+                  </div>
+                ))}
+                {/* 交错行 */}
+                {optimizerOrder.map((optItem, idx) => {
+                  const bldItem = builderOrder[idx];
+                  const isLast = idx === optimizerOrder.length - 1;
+                  return [
+                    <div key={`o-${idx}`}>{renderItem(optItem, 'secondary', 'DI优秀项目展示', isLast)}</div>,
+                    <div key={`b-${idx}`}>{renderItem(bldItem, 'tertiary', '财务投资优秀项目展示', isLast)}</div>,
+                  ];
+                })}
+              </div>
+            </>
+          );
+        })()}
+      </section>
+
 
       {/* ── Footer ── */}
       <p className="text-sm text-on-surface-variant/40 italic pt-6 border-t border-outline-variant/15">
