@@ -129,7 +129,7 @@ function DemoPicker({
   const [search, setSearch] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  // 不自动 focus——iOS 会因 font-size<16px 的 input 触发 viewport zoom
 
   const q = search.trim().toLowerCase();
   const match = (d: DemoItem) =>
@@ -144,10 +144,10 @@ function DemoPicker({
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-[2px]"
-      onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="w-full sm:max-w-lg bg-surface rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col"
-        style={{ maxHeight: '75vh' }}
+        style={{ maxHeight: '82vh', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         {/* Drag handle (mobile) */}
         <div className="flex justify-center pt-3 pb-1 sm:hidden flex-shrink-0">
@@ -164,7 +164,8 @@ function DemoPicker({
               placeholder="搜索项目名称或薯名..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="flex-1 bg-transparent text-sm text-on-surface placeholder:text-outline/50 outline-none border-none focus:ring-0 p-0"
+              className="flex-1 bg-transparent text-base text-on-surface placeholder:text-outline/50 outline-none border-none focus:ring-0 p-0"
+              style={{ fontSize: '16px' }}
             />
             {search && (
               <button onClick={() => setSearch('')} className="text-outline/50 hover:text-outline transition-colors">
@@ -442,7 +443,8 @@ export default function SquarePage() {
                   onChange={e => setQuestion(e.target.value)}
                   rows={3}
                   disabled={!selectedDemo}
-                  className="w-full bg-surface-container border border-outline-variant/25 rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-outline focus:ring-0 focus:border-outline-variant/50 resize-none disabled:opacity-40 transition-opacity"
+                  className="w-full bg-surface-container border border-outline-variant/25 rounded-xl px-4 py-3 text-on-surface placeholder:text-outline focus:ring-0 focus:border-outline-variant/50 resize-none disabled:opacity-40 transition-opacity"
+                  style={{ fontSize: '16px' }}
                 />
               </div>
             </div>
@@ -547,7 +549,7 @@ export default function SquarePage() {
                       {user && user.id === message.author_id && (
                         <button
                           onClick={() => setShowDeleteConfirm(message.id)}
-                          className="ml-auto p-1.5 text-outline hover:text-error hover:bg-error/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                          className="ml-auto p-1.5 text-outline/50 hover:text-error hover:bg-error/10 rounded-lg transition-colors md:opacity-0 md:group-hover:opacity-100"
                           title="删除"
                         >
                           <Trash2 size={14} />
