@@ -422,15 +422,15 @@ export default function LeaderboardPage() {
         {/* ── Left: list ────────────────────────────────────────────────────── */}
         <div className={`${isMobile && showDetail ? 'hidden' : 'flex'} md:flex w-full md:w-[420px] flex-shrink-0 flex-col md:h-full md:overflow-hidden`}>
 
-          {/* Search bar — desktop only */}
-          <div className={`hidden md:block flex-shrink-0 p-2 border border-b-0 border-outline-variant/20 rounded-t-xl bg-surface-container-low/50 border-t-2 ${
+          {/* Search bar */}
+          <div className={`flex-shrink-0 p-2 border border-b-0 border-outline-variant/20 rounded-t-xl bg-surface-container-low/50 border-t-2 ${
             activeTab === 'optimizer' ? 'border-t-secondary/40' :
             activeTab === 'builder'   ? 'border-t-tertiary/40'  : 'border-t-primary/40'
           }`}>
             <div className="relative">
               <input
                 type="text"
-                placeholder="搜索项目或作者..."
+                placeholder="搜索项目或薯名..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="w-full bg-surface-container-lowest border border-outline-variant/30 focus:border-primary focus:ring-0 text-sm px-3 py-2 pr-8 rounded-lg placeholder:text-outline/60"
