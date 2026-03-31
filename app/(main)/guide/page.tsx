@@ -254,7 +254,15 @@ export default function GuidePage() {
           </div>
           <div className="rounded-xl border border-outline-variant/15 bg-surface-container-low px-5 py-4">
             <p className="text-sm font-bold text-on-surface mb-1.5">2 分钟 QA</p>
-            <p className="text-sm text-on-surface-variant leading-relaxed">每个项目 1 个观众问题 + 1 个评委问题；观众问题请提前在留言广场提问，主持人会在留言广场选择问题</p>
+            <p className="text-sm text-on-surface-variant leading-relaxed mb-3">
+              每个项目 1 个观众问题 + 1 个评委问题；观众问题请提前在提问广场提问，主持人会在提问广场选择问题
+            </p>
+            <Link
+              href="/square"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-on-primary text-sm font-semibold hover:opacity-90 active:scale-95 transition-all shadow-sm"
+            >
+              💬 去提问广场提问 →
+            </Link>
           </div>
         </div>
         <p className="text-sm text-on-surface-variant mb-4">

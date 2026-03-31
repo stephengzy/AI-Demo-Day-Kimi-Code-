@@ -5,10 +5,10 @@ export const translations = {
   zh: {
     // 导航
     nav: {
-      guide: '指南',
+      guide: '信息概览',
       gallery: 'Demo总览',
       leaderboard: 'Demo投票',
-      square: '留言广场',
+      square: '提问广场',
       preliminary: 'Demo海选',
       myDemos: '我的Demo',
       submit: '提交 Demo',
