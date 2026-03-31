@@ -211,10 +211,12 @@ export default function LeaderboardPage() {
 
   const { filteredList, rankMap } = useMemo(() => {
     // rankMap only populated when admin has opened results
+    const MIN_VOTES_FOR_RANK = 3;
     const rankMap = showResults
       ? new Map(
           [...currentData]
             .sort((a, b) => b.score - a.score)
+            .filter(item => item.score >= MIN_VOTES_FOR_RANK)
             .slice(0, 10)
             .map((item, i) => [item.id, i + 1])
         )
@@ -225,7 +227,7 @@ export default function LeaderboardPage() {
     const eligibleIdSet = new Set(currentData.map(d => d.id));
     if (showResults) {
       const sorted   = [...currentData].sort((a, b) => b.score - a.score);
-      const top10    = sorted.slice(0, 10);
+      const top10    = sorted.filter(i => i.score >= MIN_VOTES_FOR_RANK).slice(0, 10);
       const top10Ids = new Set(top10.map(i => i.id));
       list = [...top10, ...currentData.filter(i => !top10Ids.has(i.id))];
     } else {
@@ -504,12 +506,12 @@ export default function LeaderboardPage() {
                       <div className="flex items-start justify-between gap-2 mb-0.5">
                         <h3 className="text-base font-headline font-bold leading-snug text-on-surface line-clamp-2">{item.name}</h3>
                         {rank && (
-                          <span className={`flex-shrink-0 inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded text-xs font-bold mt-0.5 ${
-                            rank === 1 ? 'bg-yellow-500/20 text-yellow-700' :
-                            rank === 2 ? 'bg-gray-400/20 text-gray-500' :
-                            rank === 3 ? 'bg-orange-500/20 text-orange-600' :
-                                         'bg-surface-container text-on-surface-variant/50'
-                          }`}>#{rank}</span>
+                          <span className="flex-shrink-0 text-lg leading-none mt-0.5 select-none">
+                            {rank === 1 ? '🥇'
+                              : rank === 2 && tabCfg.group === 'best' ? '🥈'
+                              : rank === 3 && tabCfg.group === 'best' ? '🥉'
+                              : <span className="text-xs font-semibold text-on-surface-variant/50">#{rank}</span>}
+                          </span>
                         )}
                       </div>
                       <p className="text-sm text-on-surface-variant/70 line-clamp-1 mb-2">{item.summary}</p>
@@ -521,10 +523,10 @@ export default function LeaderboardPage() {
                                                         'bg-primary/10 text-primary'
                           }`}>{kw}</span>
                         ))}
-                        <span className="text-xs ml-auto">
+                        <span className="ml-auto">
                           {showResults && rank
-                            ? <span className="font-bold text-on-surface/60">{item.score} 票</span>
-                            : <span className="text-on-surface-variant/50">{item.submitter1_name}{item.submitter2_name ? ' +1' : ''}</span>
+                            ? <span className="text-sm font-bold text-on-surface tabular-nums">{item.score} <span className="font-normal text-on-surface-variant/60">票</span></span>
+                            : <span className="text-xs text-on-surface-variant/50">{item.submitter1_name}{item.submitter2_name ? ' +1' : ''}</span>
                           }
                         </span>
                       </div>
@@ -562,7 +564,7 @@ export default function LeaderboardPage() {
               <div className="px-4 md:px-8 pt-5 pb-4 flex-shrink-0 border-b border-outline-variant/10">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-1.5">
                       <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded ${
                         previewItem.track === 'optimizer' ? 'bg-secondary/10 text-secondary' :
                         previewItem.track === 'builder'   ? 'bg-tertiary/10 text-tertiary'   :
@@ -570,23 +572,29 @@ export default function LeaderboardPage() {
                       }`}>
                         {previewItem.track}
                       </span>
-                      {/* Track emoji — same as preliminary page */}
-                      <span className="text-lg">
+                      <span className="text-lg leading-none">
                         {previewItem.track === 'optimizer' ? '⚡️' :
                          previewItem.track === 'builder'   ? '🛠️' :
                          TABS.find(t => t.voteType === currentVoteType)?.icon ?? '⭐'}
                       </span>
-                      {rankMap.has(previewItem.id) && (
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                          rankMap.get(previewItem.id)! <= 3
-                            ? 'bg-yellow-500/20 text-yellow-700'
-                            : 'bg-surface-container text-on-surface-variant/60'
-                        }`}>
-                          #{rankMap.get(previewItem.id)}
-                          {showResults && <span className="ml-1 font-normal opacity-70">{previewItem.score} 票</span>}
-                        </span>
-                      )}
                     </div>
+                    {rankMap.has(previewItem.id) && (() => {
+                      const r = rankMap.get(previewItem.id)!;
+                      const medal = r === 1 ? '🥇' : r === 2 && tabCfg.group === 'best' ? '🥈' : r === 3 && tabCfg.group === 'best' ? '🥉' : null;
+                      return (
+                        <div className="flex items-center gap-1.5 mb-2 text-sm text-on-surface-variant/70">
+                          {medal
+                            ? <span className="text-base leading-none select-none">{medal}</span>
+                            : <span className="font-semibold text-on-surface/60">#{r}</span>}
+                          {showResults && (
+                            <>
+                              <span className="text-on-surface-variant/30">·</span>
+                              <span className="font-semibold text-on-surface/70">{previewItem.score} 票</span>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })()}
                     <h1 className="text-3xl font-headline font-bold text-on-surface">{previewItem.name}</h1>
                     <p className="mt-2 text-base text-on-surface-variant leading-relaxed">{previewItem.summary}</p>
                   </div>
@@ -757,7 +765,7 @@ export default function LeaderboardPage() {
       {/* ── Floating bottom bar · 手机全宽条 / 桌面胶囊 ─────────────────────── */}
 
       {/* 手机：全宽条，紧贴底部 Tab Bar 上方 */}
-      <div className={`md:hidden fixed bottom-[60px] inset-x-0 z-50 border-t px-4 py-2.5 flex items-center justify-between transition-all ${
+      <div className={`md:hidden fixed bottom-0 inset-x-0 z-40 border-t px-4 pt-2.5 pb-[60px] flex items-center justify-between transition-all ${
         canSubmitCurrent
           ? 'bg-on-surface text-surface border-on-surface/20'
           : 'bg-surface-container/95 backdrop-blur-sm text-on-surface border-outline-variant/20'
@@ -798,7 +806,7 @@ export default function LeaderboardPage() {
       </div>
 
       {/* 桌面：居中胶囊 */}
-      <div className="hidden md:block fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+      <div className="hidden md:block fixed bottom-10 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
         <div className={`
           pointer-events-auto flex items-center gap-4 px-5 py-3 rounded-2xl shadow-xl border transition-all
           ${canSubmitCurrent
