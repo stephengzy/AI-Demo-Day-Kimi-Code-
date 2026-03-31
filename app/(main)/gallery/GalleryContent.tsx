@@ -268,6 +268,7 @@ export default function GalleryContent() {
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
+                style={{ fontSize: '16px' }}
               />
               <Search size={14} className="absolute right-3 top-2.5 text-outline" />
             </div>

@@ -128,6 +128,21 @@ function DemoPicker({
 }) {
   const [search, setSearch] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const [vvHeight, setVvHeight] = useState<number | null>(null);
+
+  // 监听 visualViewport 高度变化，确保键盘弹出后 modal 不被遮挡
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => setVvHeight(vv.height);
+    update();
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, []);
 
   // 不自动 focus——iOS 会因 font-size<16px 的 input 触发 viewport zoom
 
@@ -143,11 +158,12 @@ function DemoPicker({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-[2px]"
+      className="fixed top-0 left-0 right-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-[2px]"
+      style={{ height: vvHeight ? `${vvHeight}px` : '100dvh' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="w-full sm:max-w-lg bg-surface rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col"
-        style={{ maxHeight: '82vh', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        style={{ maxHeight: vvHeight ? `${Math.min(vvHeight * 0.9, vvHeight - 16)}px` : '82dvh', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         {/* Drag handle (mobile) */}
         <div className="flex justify-center pt-3 pb-1 sm:hidden flex-shrink-0">
@@ -518,17 +534,17 @@ export default function SquarePage() {
               >
                 {/* Demo target header */}
                 {message.category && (
-                  <div className={`px-4 py-2.5 flex items-center gap-2 border-b border-outline-variant/10 ${
+                  <div className={`px-4 py-2.5 flex items-start gap-2 border-b border-outline-variant/10 ${
                     track === 'optimizer' ? 'bg-secondary/5' :
                     track === 'builder'   ? 'bg-tertiary/5' : 'bg-surface-container'
                   }`}>
-                    <span className={`text-sm font-medium flex-1 truncate ${
+                    <span className={`text-sm font-medium flex-1 leading-snug line-clamp-2 ${
                       track === 'optimizer' ? 'text-secondary' :
                       track === 'builder'   ? 'text-tertiary' : 'text-on-surface'
                     }`}>
                       向 <span className="font-semibold">{message.category}</span> 提问
                     </span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0 ${
+                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0 mt-0.5 ${
                       track === 'optimizer' ? 'bg-secondary/10 text-secondary/70' :
                       track === 'builder'   ? 'bg-tertiary/10 text-tertiary/70' : ''
                     }`}>

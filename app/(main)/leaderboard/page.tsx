@@ -434,6 +434,7 @@ export default function LeaderboardPage() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="w-full bg-surface-container-lowest border border-outline-variant/30 focus:border-primary focus:ring-0 text-sm px-3 py-2 pr-8 rounded-lg placeholder:text-outline/60"
+                style={{ fontSize: '16px' }}
               />
               <Search size={14} className="absolute right-3 top-2.5 text-outline/60" />
             </div>
