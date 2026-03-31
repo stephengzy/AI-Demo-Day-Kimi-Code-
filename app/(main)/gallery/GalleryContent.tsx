@@ -65,8 +65,9 @@ export default function GalleryContent() {
   const isMobile = useMobile();
   const [showDetail, setShowDetail] = useState(false);
   
-  // 从 URL 读取 demo 参数
+  // 从 URL 读取参数
   const demoIdFromUrl = searchParams.get('demo');
+  const queryFromUrl  = searchParams.get('q');
   
   // 标记客户端挂载
   useEffect(() => {
@@ -91,14 +92,35 @@ export default function GalleryContent() {
       .then((data: { demos?: Demo[] }) => {
         const demosList = shuffleArray(data.demos || []);
         setDemos(demosList);
-        
+
         // 设置初始选中项
         if (demoIdFromUrl) {
+          // ?demo=<id> 直接打开
           const demoId = parseInt(demoIdFromUrl);
           const foundDemo = demosList.find((d: Demo) => d.id === demoId);
           if (foundDemo) {
             setSelectedDemo(foundDemo);
             setActiveTrack(foundDemo.track);
+          } else {
+            setSelectedDemo(demosList[0] || null);
+            setActiveTrack(demosList[0]?.track || 'optimizer');
+          }
+        } else if (queryFromUrl) {
+          // ?q=<name> 搜索并自动选中第一个匹配项
+          const q = queryFromUrl.toLowerCase();
+          setSearchQuery(queryFromUrl);
+          setDebouncedQuery(queryFromUrl);
+          // 双向匹配：去除引号后比较，兼容名称中有 "..." 等引号导致的 URL 编码问题
+          const stripQuotes = (s: string) => s.replace(/["""'''"']/g, '');
+          const qStripped = stripQuotes(q);
+          const matched = demosList.find((d: Demo) => {
+            const dName = stripQuotes(d.name.toLowerCase());
+            return dName.includes(qStripped) || qStripped.includes(dName);
+          });
+          if (matched) {
+            setSelectedDemo(matched);
+            setActiveTrack(matched.track);
+            if (isMobile) setShowDetail(true);
           } else {
             setSelectedDemo(demosList[0] || null);
             setActiveTrack(demosList[0]?.track || 'optimizer');
@@ -115,17 +137,20 @@ export default function GalleryContent() {
       .finally(() => {
         setLoading(false);
       });
-  }, [demoIdFromUrl]);
+  }, [demoIdFromUrl, queryFromUrl]);
 
   const optimizerDemos = demos.filter(d => d.track === 'optimizer');
   const builderDemos = demos.filter(d => d.track === 'builder');
 
   // 使用 useMemo 缓存过滤结果，避免重复计算
+  // 搜索时去掉各类引号再比较，避免 DB 里存 "财报哨兵" 而搜索词为 财报哨兵 时匹配失败
+  const nq = (s: string) => s.replace(/["""'''\u2018\u2019\u201c\u201d]/g, '').toLowerCase();
+
   const filteredOptimizer = useMemo(() => {
-    const q = debouncedQuery.toLowerCase();
+    const q = nq(debouncedQuery);
     if (!q) return optimizerDemos;
     return optimizerDemos.filter(d =>
-      d.name.toLowerCase().includes(q) ||
+      nq(d.name).includes(q) ||
       d.summary.toLowerCase().includes(q) ||
       d.submitter1_name.toLowerCase().includes(q) ||
       (d.submitter2_name && d.submitter2_name.toLowerCase().includes(q)) ||
@@ -134,10 +159,10 @@ export default function GalleryContent() {
   }, [optimizerDemos, debouncedQuery]);
 
   const filteredBuilder = useMemo(() => {
-    const q = debouncedQuery.toLowerCase();
+    const q = nq(debouncedQuery);
     if (!q) return builderDemos;
     return builderDemos.filter(d =>
-      d.name.toLowerCase().includes(q) ||
+      nq(d.name).includes(q) ||
       d.summary.toLowerCase().includes(q) ||
       d.submitter1_name.toLowerCase().includes(q) ||
       (d.submitter2_name && d.submitter2_name.toLowerCase().includes(q)) ||

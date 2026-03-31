@@ -26,7 +26,7 @@ export async function GET() {
   const { data: config, error } = await supabase
     .from('site_config')
     .select('*')
-    .in('key', ['voting_enabled', 'voting_notice', 'submission_enabled', 'nav_leaderboard_visible', 'nav_preliminary_visible', 'leaderboard_results_visible']) as { data: any[]; error: any };
+    .in('key', ['voting_enabled', 'voting_notice', 'submission_enabled', 'nav_leaderboard_visible', 'nav_preliminary_visible', 'leaderboard_results_visible', 'leaderboard_eligible_ids']) as { data: any[]; error: any };
 
   // 表不存在的错误
   if (error && error.code === '42P01') {
@@ -61,6 +61,10 @@ export async function GET() {
   // 投票结果可见性（默认隐藏，需 admin 开放）
   const leaderboardResultsVisible = configMap['leaderboard_results_visible'] === 'true';
 
+  const leaderboardEligibleIds: number[] = (() => {
+    try { return JSON.parse(configMap['leaderboard_eligible_ids'] || '[]'); } catch { return []; }
+  })();
+
   return NextResponse.json({
     isVotingOpen,
     isSubmissionOpen,
@@ -68,6 +72,7 @@ export async function GET() {
     navLeaderboardVisible,
     navPreliminaryVisible,
     leaderboardResultsVisible,
+    leaderboardEligibleIds,
   });
 }
 
@@ -78,7 +83,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '无权访问' }, { status: 403 });
   }
   
-  const { enabled, notice, submissionEnabled, navLeaderboardVisible, navPreliminaryVisible, leaderboardResultsVisible } = await request.json();
+  const { enabled, notice, submissionEnabled, navLeaderboardVisible, navPreliminaryVisible, leaderboardResultsVisible, leaderboardEligibleIds } = await request.json();
 
   const supabase = getSupabaseAdmin();
 
@@ -120,7 +125,11 @@ export async function POST(request: Request) {
   if (leaderboardResultsVisible !== undefined) {
     updates.push({ key: 'leaderboard_results_visible', value: leaderboardResultsVisible ? 'true' : 'false' });
   }
-  
+
+  if (leaderboardEligibleIds !== undefined && Array.isArray(leaderboardEligibleIds)) {
+    updates.push({ key: 'leaderboard_eligible_ids', value: JSON.stringify(leaderboardEligibleIds) });
+  }
+
   // 批量 upsert
   for (const update of updates) {
     const { error } = await supabase

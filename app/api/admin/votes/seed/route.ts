@@ -102,7 +102,7 @@ export async function POST() {
   for (let i = 0; i < toInsert.length; i += BATCH) {
     const { error } = await supabase
       .from('votes')
-      .insert(toInsert.slice(i, i + BATCH) as any[]);
+      .insert(toInsert.slice(i, i + BATCH) as any);
     if (!error) inserted += Math.min(BATCH, toInsert.length - i);
   }
 

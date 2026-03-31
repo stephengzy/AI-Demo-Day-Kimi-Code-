@@ -86,7 +86,7 @@ function getTabConfig(tab: TabType) {
 export default function LeaderboardPage() {
   const { user } = useUser();
 
-  const { data: votingStatus } = useSWR<{ isVotingOpen: boolean; notice: string; leaderboardResultsVisible: boolean }>(
+  const { data: votingStatus } = useSWR<{ isVotingOpen: boolean; notice: string; leaderboardResultsVisible: boolean; leaderboardEligibleIds: number[] }>(
     '/api/config', jsonFetcher, { revalidateOnFocus: false, dedupingInterval: 30000 }
   );
   const { data: votesData, mutate: mutateVotes } = useSWR<{ votes: Vote[] }>(
@@ -199,7 +199,15 @@ export default function LeaderboardPage() {
   // 结果仅在 admin 开放后展示
   const showResults         = votingStatus?.leaderboardResultsVisible === true;
 
-  const currentData = leaderboardData[activeTab] || [];
+  const rawData = leaderboardData[activeTab] || [];
+
+  // 按管理员配置的入选名单过滤（空名单 = 不过滤，显示全部）
+  const eligibleIds = votingStatus?.leaderboardEligibleIds;
+  const currentData = useMemo(() => {
+    if (!eligibleIds || eligibleIds.length === 0) return rawData;
+    const idSet = new Set(eligibleIds);
+    return rawData.filter(d => idSet.has(d.id));
+  }, [rawData, eligibleIds]);
 
   const { filteredList, rankMap } = useMemo(() => {
     // rankMap only populated when admin has opened results
@@ -214,13 +222,16 @@ export default function LeaderboardPage() {
 
     // Before results: use per-tab shuffled order; after results open: sort by score (top10 first)
     let list: LeaderboardItem[];
+    const eligibleIdSet = new Set(currentData.map(d => d.id));
     if (showResults) {
       const sorted   = [...currentData].sort((a, b) => b.score - a.score);
       const top10    = sorted.slice(0, 10);
       const top10Ids = new Set(top10.map(i => i.id));
       list = [...top10, ...currentData.filter(i => !top10Ids.has(i.id))];
     } else {
-      list = shuffledOrders[activeTab] || currentData;
+      // shuffledOrders is built from raw data before eligible filter — re-apply filter here
+      const shuffled = shuffledOrders[activeTab] || currentData;
+      list = shuffled.filter(d => eligibleIdSet.has(d.id));
     }
 
     if (debouncedQuery.trim()) {

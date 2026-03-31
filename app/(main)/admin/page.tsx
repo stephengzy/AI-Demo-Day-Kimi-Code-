@@ -96,6 +96,10 @@ export default function AdminPage() {
   const [leaderboardResultsVisible, setLeaderboardResultsVisible] = useState(false);
   const [resultsVisibleLoading, setResultsVisibleLoading] = useState(false);
 
+  // Leaderboard 入选名单
+  const [eligibleIds, setEligibleIds] = useState<number[]>([]);
+  const [eligibleSaving, setEligibleSaving] = useState(false);
+
   // 加票管理
   interface BonusVoteEntry { demo_id: number; vote_type: string; bonus: number; }
   interface BonusDemoOption { id: number; name: string; track: string; }
@@ -205,6 +209,7 @@ export default function AdminPage() {
       setNavLeaderboardVisible(data.navLeaderboardVisible ?? true);
       setNavPreliminaryVisible(data.navPreliminaryVisible ?? false);
       setLeaderboardResultsVisible(data.leaderboardResultsVisible ?? false);
+      setEligibleIds(data.leaderboardEligibleIds ?? []);
     } catch (error) {
       console.error('Failed to load site status:', error);
     }
@@ -550,6 +555,36 @@ export default function AdminPage() {
     } finally {
       setResultsVisibleLoading(false);
     }
+  };
+
+  // 保存 Leaderboard 入选名单
+  const saveEligibleIds = async (ids: number[]) => {
+    setEligibleSaving(true);
+    try {
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leaderboardEligibleIds: ids }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEligibleIds(ids);
+        setResult({ type: 'success', message: `✅ 已选 ${ids.length} 个项目上榜` });
+      } else {
+        setResult({ type: 'error', message: data.error || '保存失败' });
+      }
+    } catch (e: any) {
+      setResult({ type: 'error', message: e.message });
+    } finally {
+      setEligibleSaving(false);
+    }
+  };
+
+  const toggleEligible = (id: number) => {
+    const next = eligibleIds.includes(id)
+      ? eligibleIds.filter(x => x !== id)
+      : [...eligibleIds, id];
+    saveEligibleIds(next);
   };
 
   // 加载加票配置
@@ -1174,6 +1209,53 @@ export default function AdminPage() {
                     {navConfigLoading ? <Loader2 size={14} className="animate-spin" /> : navPreliminaryVisible ? '隐藏' : '显示'}
                   </button>
                 </div>
+              </div>
+            </section>
+
+            {/* ─── Leaderboard 入选名单 ─── */}
+            <section>
+              <h2 className="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
+                <LayoutGrid size={18} className="text-primary" />
+                投票入选名单
+                {eligibleSaving && <Loader2 size={14} className="animate-spin text-on-surface-variant ml-auto" />}
+                <span className="ml-auto text-xs font-normal text-on-surface-variant">
+                  已选 {eligibleIds.length} / {bonusDemos.length} 个
+                </span>
+              </h2>
+              <div className="bg-surface-container-low rounded-xl border border-outline-variant/20 p-4 space-y-4">
+                <p className="text-xs text-on-surface-variant">勾选后立即保存。只有勾选的产品会出现在投票页。</p>
+                {/* Quick actions */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => saveEligibleIds(bonusDemos.map(d => d.id))}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-surface-container border border-outline-variant/30 hover:bg-surface-container-high transition-colors"
+                  >全选</button>
+                  <button
+                    onClick={() => saveEligibleIds([])}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-surface-container border border-outline-variant/30 hover:bg-surface-container-high transition-colors"
+                  >清空</button>
+                </div>
+                {/* Optimizer */}
+                {(['optimizer', 'builder'] as const).map(track => (
+                  <div key={track}>
+                    <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">
+                      {track === 'optimizer' ? '⚡ Optimizer' : '🛠️ Builder'}
+                    </p>
+                    <div className="space-y-1">
+                      {bonusDemos.filter(d => d.track === track).map(d => (
+                        <label key={d.id} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-surface-container-high cursor-pointer transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={eligibleIds.includes(d.id)}
+                            onChange={() => toggleEligible(d.id)}
+                            className="w-4 h-4 rounded accent-primary flex-shrink-0"
+                          />
+                          <span className="text-sm text-on-surface truncate">{d.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </section>
 
